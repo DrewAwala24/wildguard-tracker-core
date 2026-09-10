@@ -11,10 +11,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Disable CSRF if building a stateless API or for local testing
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/telemetry/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/", "/api/**", "/css/**", "/js/**").permitAll() // Allow public access to these paths
+                        .anyRequest().authenticated() // Require authentication for everything else
                 );
         return http.build();
     }

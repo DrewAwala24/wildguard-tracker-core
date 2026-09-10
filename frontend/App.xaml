@@ -1,14 +1,23 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:frontend"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="frontend.App">
+
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+            <!-- KWS Color Palette -->
+            <Color x:Key="KwsPrimary">#556B2F</Color>
+            <Color x:Key="KwsSecondary">#6B8E23</Color>
+            <Color x:Key="KwsDarkBackground">#4A5D23</Color>
+            <Color x:Key="KwsCardBackground">#3E4E1C</Color>
+            <Color x:Key="KwsAccent">#FFD700</Color>
+            <Color x:Key="KwsTextWhite">#FFFFFF</Color>
+
+            <!-- Global Style Overrides -->
+            <Style TargetType="Label">
+                <Setter Property="FontFamily" Value="MontserratRegular"/>
+                <Setter Property="TextColor" Value="{StaticResource KwsTextWhite}"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
