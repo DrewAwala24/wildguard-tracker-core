@@ -1,0 +1,11 @@
+package com.kws.backend.backend.repository;
+
+import com.kws.backend.backend.model.TelemetryLocation;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface TelemetryRepository extends JpaRepository<TelemetryLocation, Long> {
+    List<TelemetryLocation> findByAnimalIdOrderByTimestampDesc(Long animalId);
+}
