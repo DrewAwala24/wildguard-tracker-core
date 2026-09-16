@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+using frontend.Services;
+using frontend.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace frontend
 {
@@ -11,13 +13,21 @@ namespace frontend
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    // Existing Montserrat fonts bundled in Resources/Fonts
+                    fonts.AddFont("Montserrat-VariableFont_wght.ttf", "MontserratRegular");
+                    fonts.AddFont("Montserrat-VariableFont_wght.ttf", "MontserratBold");
+                    fonts.AddFont("Montserrat-Italic-VariableFont_wght.ttf", "MontserratItalic");
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
+
+            // Register Dependency Injection Services
+            builder.Services.AddSingleton<HttpClient>();
+            builder.Services.AddSingleton<ApiService>();
+            builder.Services.AddSingleton<MainViewModel>();
+            builder.Services.AddTransient<MainPage>();
 
             return builder.Build();
         }

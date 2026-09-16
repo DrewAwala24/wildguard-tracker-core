@@ -1,91 +1,278 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="frontend.MainPage"
              BackgroundColor="{StaticResource KwsPrimary}"
              Title="WildGuard Tracker">
 
-    <RefreshView Command="{Binding LoadDataCommand}" IsRefreshing="{Binding IsRefreshing}">
+    <RefreshView Command="{Binding LoadDataCommand}" 
+                 IsRefreshing="{Binding IsRefreshing}"
+                 RefreshColor="{StaticResource KwsAccent}">
         <ScrollView>
-            <VerticalStackLayout Padding="20" Spacing="25">
+            <VerticalStackLayout Padding="18,16,18,24" Spacing="20">
 
-                <!-- Header Banner -->
-                <VerticalStackLayout Spacing="5" HorizontalOptions="Center" Margin="0,10,0,10">
-                    <Label Text="KENYA WILDLIFE SERVICE" 
-                           FontSize="20" 
-                           FontFamily="MontserratBold" 
-                           CharacterSpacing="2"
-                           HorizontalTextAlignment="Center"
-                           TextColor="{StaticResource KwsTextWhite}"/>
-                    <Label Text="Wildlife Tracking &amp; Telemetry Dashboard" 
-                           FontSize="13" 
-                           Opacity="0.8"
-                           HorizontalTextAlignment="Center"/>
-                </VerticalStackLayout>
+                <!-- Header Bar: Logo, Title, and Operational Sync Action -->
+                <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 8"
+                            Stroke="#33FFFFFF"
+                            StrokeThickness="1"
+                            Padding="2"
+                            BackgroundColor="#1A000000"
+                            VerticalOptions="Center">
+                        <Image Source="kws_logo.jpg" 
+                               HeightRequest="42" 
+                               WidthRequest="42" 
+                               Aspect="AspectFit" />
+                    </Border>
 
-                <!-- Monitored Animals Section -->
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="14,0,0,0">
+                        <Label Text="WILDGUARD TRACKER" 
+                               FontSize="17" 
+                               FontFamily="MontserratBold" 
+                               CharacterSpacing="1"
+                               TextColor="{StaticResource KwsTextWhite}"/>
+                        <Label Text="Kenya Wildlife Service • Field Operations" 
+                               FontSize="11" 
+                               Opacity="0.75"/>
+                    </VerticalStackLayout>
+
+                    <!-- Functional Sync Action Button -->
+                    <Border Grid.Column="2" 
+                            BackgroundColor="#26000000" 
+                            StrokeShape="RoundRectangle 8" 
+                            Stroke="#33FFFFFF"
+                            StrokeThickness="1"
+                            Padding="12,6" 
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding LoadDataCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <Label Text="↻" FontSize="13" TextColor="{StaticResource KwsAccent}" VerticalOptions="Center"/>
+                            <Label Text="Sync" FontSize="12" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Live Metrics Row (Driven Strictly by Real Data Bindings) -->
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
+                    <!-- Monitored Wildlife Count -->
+                    <Border Grid.Column="0" 
+                            Padding="14,12" 
+                            BackgroundColor="{StaticResource KwsCardBackground}" 
+                            StrokeShape="RoundRectangle 10" 
+                            Stroke="#22FFFFFF"
+                            StrokeThickness="1">
+                        <VerticalStackLayout Spacing="3">
+                            <Label Text="MONITORED WILDLIFE" 
+                                   FontSize="10" 
+                                   Opacity="0.7" 
+                                   FontFamily="MontserratBold"
+                                   CharacterSpacing="0.5"/>
+                            <Label Text="{Binding ActiveAnimalsCount, FallbackValue='0 Tracked'}" 
+                                   FontSize="16" 
+                                   FontFamily="MontserratBold" 
+                                   TextColor="{StaticResource KwsAccent}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Telemetry Records Count -->
+                    <Border Grid.Column="1" 
+                            Padding="14,12" 
+                            BackgroundColor="{StaticResource KwsCardBackground}" 
+                            StrokeShape="RoundRectangle 10" 
+                            Stroke="#22FFFFFF"
+                            StrokeThickness="1">
+                        <VerticalStackLayout Spacing="3">
+                            <Label Text="TELEMETRY LOGS" 
+                                   FontSize="10" 
+                                   Opacity="0.7" 
+                                   FontFamily="MontserratBold"
+                                   CharacterSpacing="0.5"/>
+                            <Label Text="{Binding TelemetryLogsCount, FallbackValue='0 Recorded'}" 
+                                   FontSize="16" 
+                                   FontFamily="MontserratBold" 
+                                   TextColor="{StaticResource KwsTextWhite}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Monitored Wildlife Section -->
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Monitored Animals" 
-                           FontSize="18" 
-                           FontFamily="MontserratBold"/>
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <Label Grid.Column="0"
+                               Text="Monitored Wildlife" 
+                               FontSize="16" 
+                               FontFamily="MontserratBold"
+                               TextColor="{StaticResource KwsTextWhite}"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Animals.Count, StringFormat='{0} Active'}"
+                               FontSize="12"
+                               Opacity="0.75"
+                               VerticalOptions="Center"/>
+                    </Grid>
 
-                    <CollectionView ItemsSource="{Binding Animals}" HeightRequest="210">
+                    <CollectionView ItemsSource="{Binding Animals}" HeightRequest="195">
                         <CollectionView.ItemsLayout>
                             <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12"/>
                         </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame WidthRequest="180" 
-                                       Padding="15" 
-                                       BackgroundColor="{StaticResource KwsCardBackground}" 
-                                       CornerRadius="12"
-                                       HasShadow="True">
-                                    <VerticalStackLayout Spacing="8" VerticalOptions="Center">
-                                        <Label Text="{Binding Name}" 
+                                <Border WidthRequest="180" 
+                                        Padding="14" 
+                                        BackgroundColor="{StaticResource KwsCardBackground}" 
+                                        StrokeShape="RoundRectangle 12"
+                                        Stroke="#25FFFFFF"
+                                        StrokeThickness="1">
+                                    <Grid RowDefinitions="Auto, *, Auto, Auto" RowSpacing="6">
+                                        <!-- Species Chip -->
+                                        <Border Grid.Row="0"
+                                                HorizontalOptions="Start"
+                                                BackgroundColor="#22000000"
+                                                StrokeShape="RoundRectangle 6"
+                                                Stroke="#22FFFFFF"
+                                                StrokeThickness="1"
+                                                Padding="8,3">
+                                            <Label Text="{Binding Species}" 
+                                                   FontSize="11" 
+                                                   TextColor="{StaticResource KwsTextWhite}"
+                                                   Opacity="0.9"/>
+                                        </Border>
+
+                                        <!-- Animal Name -->
+                                        <Label Grid.Row="1"
+                                               Text="{Binding Name}" 
                                                FontSize="16" 
                                                FontFamily="MontserratBold" 
-                                               TextColor="{StaticResource KwsAccent}"/>
-                                        <Label Text="{Binding Species}" 
-                                               FontSize="13" 
-                                               Opacity="0.9"/>
-                                    </VerticalStackLayout>
-                                </Frame>
+                                               TextColor="{StaticResource KwsAccent}"
+                                               LineBreakMode="TailTruncation"
+                                               VerticalOptions="Center"/>
+
+                                        <!-- Divider -->
+                                        <BoxView Grid.Row="2" 
+                                                 HeightRequest="1" 
+                                                 Color="#20FFFFFF" 
+                                                 Margin="0,2"/>
+
+                                        <!-- Animal Details: Collar ID and Registry ID -->
+                                        <VerticalStackLayout Grid.Row="3" Spacing="2">
+                                            <Label Text="{Binding CollarId, StringFormat='Collar: {0}'}" 
+                                                   FontSize="11" 
+                                                   Opacity="0.75"
+                                                   LineBreakMode="TailTruncation"/>
+                                            <Label Text="{Binding Id, StringFormat='ID: #{0}'}" 
+                                                   FontSize="10" 
+                                                   Opacity="0.5"/>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Border StrokeShape="RoundRectangle 10" 
+                                    Stroke="#1AFFFFFF" 
+                                    StrokeThickness="1" 
+                                    BackgroundColor="{StaticResource KwsCardBackground}" 
+                                    Padding="24" 
+                                    HorizontalOptions="Fill">
+                                <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="No Monitored Animals Recorded" 
+                                           FontFamily="MontserratBold" 
+                                           FontSize="13" 
+                                           TextColor="{StaticResource KwsTextWhite}"
+                                           HorizontalTextAlignment="Center"/>
+                                    <Label Text="Pull down or tap Sync to query active collars." 
+                                           FontSize="11" 
+                                           Opacity="0.7" 
+                                           HorizontalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </CollectionView.EmptyView>
                     </CollectionView>
                 </VerticalStackLayout>
 
-                <!-- Live Telemetry Feeds Section -->
+                <!-- Recent Telemetry Feeds Section -->
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Live Telemetry Feeds" 
-                           FontSize="18" 
-                           FontFamily="MontserratBold"/>
+                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <Label Grid.Column="0"
+                               Text="Recent Telemetry Logs" 
+                               FontSize="16" 
+                               FontFamily="MontserratBold"
+                               TextColor="{StaticResource KwsTextWhite}"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding TelemetryLogs.Count, StringFormat='{0} Entries'}"
+                               FontSize="12"
+                               Opacity="0.75"
+                               VerticalOptions="Center"/>
+                    </Grid>
 
                     <CollectionView ItemsSource="{Binding TelemetryLogs}" HeightRequest="280">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame Margin="0,4" 
-                                       Padding="14" 
-                                       BackgroundColor="{StaticResource KwsCardBackground}" 
-                                       CornerRadius="10">
-                                    <Grid ColumnDefinitions="*, Auto">
-                                        <VerticalStackLayout Grid.Column="0" Spacing="3">
-                                            <Label Text="{Binding AnimalId, StringFormat='Animal ID: {0}'}" 
+                                <Border Margin="0,4" 
+                                        Padding="14,10" 
+                                        BackgroundColor="{StaticResource KwsCardBackground}" 
+                                        StrokeShape="RoundRectangle 10"
+                                        Stroke="#20FFFFFF"
+                                        StrokeThickness="1">
+                                    <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                                        <!-- Log Identifier and Timestamp -->
+                                        <VerticalStackLayout Grid.Column="0" Spacing="3" VerticalOptions="Center">
+                                            <Label Text="{Binding DisplayAnimalId, StringFormat='Target #{0}'}" 
                                                    FontFamily="MontserratBold" 
                                                    TextColor="{StaticResource KwsAccent}"
-                                                   FontSize="14"/>
-                                            <Label Text="{Binding Timestamp, StringFormat='Time: {0:yyyy-MM-dd HH:mm:ss}'}" 
+                                                   FontSize="13"/>
+                                            <Label Text="{Binding Timestamp, StringFormat='{0:yyyy-MM-dd HH:mm:ss}'}" 
                                                    FontSize="11" 
                                                    Opacity="0.7"/>
                                         </VerticalStackLayout>
-                                        <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="2">
-                                            <Label Text="{Binding Latitude, StringFormat='Lat: {0:F4}'}" FontSize="12"/>
-                                            <Label Text="{Binding Longitude, StringFormat='Lng: {0:F4}'}" FontSize="12"/>
-                                        </VerticalStackLayout>
+
+                                        <!-- GPS Coordinates Chip -->
+                                        <Border Grid.Column="1"
+                                                BackgroundColor="#22000000"
+                                                StrokeShape="RoundRectangle 6"
+                                                Stroke="#25FFFFFF"
+                                                StrokeThickness="1"
+                                                Padding="10,6"
+                                                VerticalOptions="Center">
+                                            <VerticalStackLayout Spacing="2" HorizontalOptions="End">
+                                                <Label Text="{Binding Latitude, StringFormat='Lat: {0:F4}°'}" 
+                                                       FontSize="11" 
+                                                       Opacity="0.85"
+                                                       HorizontalTextAlignment="End"/>
+                                                <Label Text="{Binding Longitude, StringFormat='Lng: {0:F4}°'}" 
+                                                       FontSize="11" 
+                                                       Opacity="0.85"
+                                                       HorizontalTextAlignment="End"/>
+                                            </VerticalStackLayout>
+                                        </Border>
                                     </Grid>
-                                </Frame>
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Border StrokeShape="RoundRectangle 10" 
+                                    Stroke="#1AFFFFFF" 
+                                    StrokeThickness="1" 
+                                    BackgroundColor="{StaticResource KwsCardBackground}" 
+                                    Padding="24" 
+                                    HorizontalOptions="Fill">
+                                <VerticalStackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="No Telemetry Feeds Available" 
+                                           FontFamily="MontserratBold" 
+                                           FontSize="13" 
+                                           TextColor="{StaticResource KwsTextWhite}"
+                                           HorizontalTextAlignment="Center"/>
+                                    <Label Text="Awaiting real-time GPS fixes from field collars." 
+                                           FontSize="11" 
+                                           Opacity="0.7" 
+                                           HorizontalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </CollectionView.EmptyView>
                     </CollectionView>
                 </VerticalStackLayout>
 
