@@ -11,6 +11,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -39,5 +40,9 @@ public class TelemetryService {
         if (!breaches.isEmpty()) {
             // Trigger early-warning alert notifications here
         }
+    }
+
+    public List<TelemetryLocation> getAllTelemetry() {
+        return telemetryRepository.findAll();
     }
 }
