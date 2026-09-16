@@ -67,7 +67,7 @@ graph TD
         VM --> MAP
     end
 
-    subgraph Backend [Java Spring Boot REST API :8080]
+    subgraph Backend [Java Spring Boot REST API ]
         AC[AnimalController]
         TC[TelemetryController]
         GC[GeofenceController]
@@ -80,7 +80,7 @@ graph TD
         GC --> GS
     end
 
-    subgraph Database [PostgreSQL + PostGIS :5432]
+    subgraph Database [PostgreSQL + PostGIS]
         DB[(kws_tracker_db)]
         AS --> DB
         TS --> DB
@@ -215,4 +215,4 @@ dotnet build -t:Run -f net10.0-windows10.0.19041.0
 ---
 
 ## 🛡️ License & Acknowledgments
-Built for the **Kenya Wildlife Service (KWS)** wildlife conservation operations. Dedicated to field rangers, conservation biologists, and anti-poaching patrol units safeguarding Kenya's natural heritage.
+Built for wildlife conservation operations. Dedicated to field rangers, conservation biologists, and anti-poaching patrol units safeguarding Kenya's natural heritage.
