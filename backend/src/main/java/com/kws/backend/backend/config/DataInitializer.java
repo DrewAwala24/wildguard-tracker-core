@@ -1,8 +1,6 @@
 package com.kws.backend.backend.config;
 
-import com.kws.backend.backend.model.Animal;
 import com.kws.backend.backend.model.GeofenceZone;
-import com.kws.backend.backend.repository.AnimalRepository;
 import com.kws.backend.backend.repository.GeofenceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +18,11 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     private final GeofenceRepository geofenceRepository;
-    private final AnimalRepository animalRepository;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     @Override
     public void run(String... args) {
         seedGeofences();
-        seedWildlife();
     }
 
     private void seedGeofences() {
@@ -88,24 +84,6 @@ public class DataInitializer implements CommandLineRunner {
 
         geofenceRepository.saveAll(List.of(amboseli, kimana, nairobi, mara, tsavo));
         log.info("Successfully seeded Kenyan park boundaries.");
-    }
-
-    private void seedWildlife() {
-        if (animalRepository.count() > 0) {
-            return;
-        }
-
-        log.info("Initializing collared Kenyan wildlife registry...");
-        Animal a1 = new Animal(null, "Echo's Matriarch", "African Elephant", "KWS-AMB-ELE01");
-        Animal a2 = new Animal(null, "Mutula Bull", "African Elephant", "KWS-AMB-ELE04");
-        Animal a3 = new Animal(null, "Galana Red Bull", "African Elephant", "KWS-TSV-ELE12");
-        Animal a4 = new Animal(null, "Satao Pride Leader", "Lion", "KWS-TSV-LIO05");
-        Animal a5 = new Animal(null, "Kipsing Male", "Lion", "KWS-MAR-LIO02");
-        Animal a6 = new Animal(null, "Talek River Female", "Cheetah", "KWS-MAR-CHT01");
-        Animal a7 = new Animal(null, "Mukurwe Black Rhino", "Black Rhino", "KWS-NBI-RHI03");
-
-        animalRepository.saveAll(List.of(a1, a2, a3, a4, a5, a6, a7));
-        log.info("Successfully seeded collared wildlife.");
     }
 
     private Polygon createPolygon(Coordinate[] coords) {

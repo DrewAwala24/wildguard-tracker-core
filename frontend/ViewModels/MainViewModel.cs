@@ -19,12 +19,25 @@ public class MainViewModel : BindableObject
     private string _activeAlertsSummary = string.Empty;
     private bool _isRegistrationModalOpen;
 
+    // Resolve Modal Bindings
+    private bool _isResolveModalOpen;
+    private string _resolutionNotes = string.Empty;
+    private IncidentAlertDto? _currentResolvingIncident;
+
+    // Toast Notification for SMS Broadcast
+    private string _smsNotificationToast = string.Empty;
+    private bool _showSmsToast;
+
     // Registration Form Bindings
     private string _newAnimalName = string.Empty;
     private string _newAnimalSpecies = "African Elephant";
     private string _newCollarId = string.Empty;
     private string _newParkName = "Amboseli NP";
     private string _newAnimalSex = "Female";
+
+    // Selected Animal for Breadcrumb Trails
+    private AnimalDto? _selectedAnimal;
+    public List<TelemetryTrailDto> SelectedTrail { get; set; } = new();
 
     // Map HTML Content for WebView
     private string _mapHtml = string.Empty;
@@ -38,12 +51,19 @@ public class MainViewModel : BindableObject
     public ObservableCollection<AnimalDto> FilteredAnimals { get; } = new();
     public ObservableCollection<TelemetryLocation> FilteredTelemetryLogs { get; } = new();
     public ObservableCollection<IncidentAlertDto> ActiveIncidents { get; } = new();
+    public ObservableCollection<PatrolUnitDto> PatrolUnits { get; } = new();
 
     // Commands
     public ICommand LoadDataCommand { get; }
     public ICommand SelectParkCommand { get; }
     public ICommand SelectSpeciesCommand { get; }
     public ICommand DispatchPatrolCommand { get; }
+    public ICommand BroadcastSmsCommand { get; }
+    public ICommand OpenResolveModalCommand { get; }
+    public ICommand CloseResolveModalCommand { get; }
+    public ICommand SubmitResolveCommand { get; }
+    public ICommand SelectAnimalTrailCommand { get; }
+    public ICommand SimulateTelemetryStepCommand { get; }
     public ICommand OpenRegistrationCommand { get; }
     public ICommand CloseRegistrationCommand { get; }
     public ICommand SubmitRegistrationCommand { get; }
@@ -122,6 +142,36 @@ public class MainViewModel : BindableObject
         set { if (_isRegistrationModalOpen != value) { _isRegistrationModalOpen = value; OnPropertyChanged(); } }
     }
 
+    public bool IsResolveModalOpen
+    {
+        get => _isResolveModalOpen;
+        set { if (_isResolveModalOpen != value) { _isResolveModalOpen = value; OnPropertyChanged(); } }
+    }
+
+    public string ResolutionNotes
+    {
+        get => _resolutionNotes;
+        set { if (_resolutionNotes != value) { _resolutionNotes = value; OnPropertyChanged(); } }
+    }
+
+    public string SmsNotificationToast
+    {
+        get => _smsNotificationToast;
+        set { if (_smsNotificationToast != value) { _smsNotificationToast = value; OnPropertyChanged(); } }
+    }
+
+    public bool ShowSmsToast
+    {
+        get => _showSmsToast;
+        set { if (_showSmsToast != value) { _showSmsToast = value; OnPropertyChanged(); } }
+    }
+
+    public AnimalDto? SelectedAnimal
+    {
+        get => _selectedAnimal;
+        set { if (_selectedAnimal != value) { _selectedAnimal = value; OnPropertyChanged(); } }
+    }
+
     public string NewAnimalName
     {
         get => _newAnimalName;
@@ -175,7 +225,13 @@ public class MainViewModel : BindableObject
         LoadDataCommand = new Command(async () => await LoadDataAsync(), () => !IsRefreshing);
         SelectParkCommand = new Command<string>(park => SelectedPark = park);
         SelectSpeciesCommand = new Command<string>(species => SelectedSpecies = species);
-        DispatchPatrolCommand = new Command<IncidentAlertDto>(DispatchPatrol);
+        DispatchPatrolCommand = new Command<IncidentAlertDto>(async alert => await DispatchPatrolAsync(alert));
+        BroadcastSmsCommand = new Command<IncidentAlertDto>(async alert => await BroadcastCommunitySmsAsync(alert));
+        OpenResolveModalCommand = new Command<IncidentAlertDto>(OpenResolveModal);
+        CloseResolveModalCommand = new Command(() => IsResolveModalOpen = false);
+        SubmitResolveCommand = new Command(async () => await SubmitResolveAsync());
+        SelectAnimalTrailCommand = new Command<AnimalDto>(async animal => await SelectAnimalTrailAsync(animal));
+        SimulateTelemetryStepCommand = new Command(async () => await SimulateTelemetryStepAsync());
 
         OpenRegistrationCommand = new Command(() =>
         {
@@ -203,12 +259,14 @@ public class MainViewModel : BindableObject
             var animalsTask = _apiService.GetAnimalsAsync();
             var telemetryTask = _apiService.GetTelemetryAsync();
             var geofencesTask = _apiService.GetGeofencesAsync();
+            var patrolsTask = _apiService.GetPatrolUnitsAsync();
 
-            await Task.WhenAll(animalsTask, telemetryTask, geofencesTask);
+            await Task.WhenAll(animalsTask, telemetryTask, geofencesTask, patrolsTask);
 
             var animals = await animalsTask;
             var telemetry = await telemetryTask;
             var geofences = await geofencesTask;
+            var patrols = await patrolsTask;
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
@@ -221,6 +279,12 @@ public class MainViewModel : BindableObject
                 Geofences.Clear();
                 if (geofences != null) Geofences.AddRange(geofences);
 
+                PatrolUnits.Clear();
+                if (patrols != null)
+                {
+                    foreach (var p in patrols) PatrolUnits.Add(p);
+                }
+
                 EvaluateGeofenceBreaches();
                 ApplyFilter();
                 UpdateMapHtml();
@@ -228,7 +292,7 @@ public class MainViewModel : BindableObject
                 ActiveAnimalsCount = $"{MasterAnimals.Count} Monitored";
                 TelemetryLogsCount = $"{MasterTelemetry.Count} Recorded";
 
-                Debug.WriteLine($"[MainViewModel] Data ready: {MasterAnimals.Count} animals, {MasterTelemetry.Count} telemetry pings across Kenya.");
+                Debug.WriteLine($"[MainViewModel] Data ready: {MasterAnimals.Count} animals, {MasterTelemetry.Count} telemetry pings, {PatrolUnits.Count} patrols across Kenya.");
             });
         }
         catch (Exception ex)
@@ -249,30 +313,33 @@ public class MainViewModel : BindableObject
         FilteredAnimals.Clear();
         FilteredTelemetryLogs.Clear();
 
-        var animalsQuery = MasterAnimals.AsEnumerable();
+        var animals = MasterAnimals.AsEnumerable();
+
         if (SelectedPark != "All Kenya")
         {
-            animalsQuery = animalsQuery.Where(a => a.ParkName.Equals(SelectedPark, StringComparison.OrdinalIgnoreCase));
+            animals = animals.Where(a => a.ParkName.Equals(SelectedPark, StringComparison.OrdinalIgnoreCase));
         }
 
         if (SelectedSpecies != "All Species")
         {
-            animalsQuery = animalsQuery.Where(a => a.Species.Contains(SelectedSpecies, StringComparison.OrdinalIgnoreCase));
+            animals = animals.Where(a => a.Species.Equals(SelectedSpecies, StringComparison.OrdinalIgnoreCase));
         }
 
-        var matchingAnimals = animalsQuery.ToList();
-        foreach (var animal in matchingAnimals)
+        foreach (var animal in animals)
         {
             FilteredAnimals.Add(animal);
         }
 
-        var matchingCollarIds = matchingAnimals.Select(a => a.CollarId).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var log in MasterTelemetry)
+        var visibleCollarIds = FilteredAnimals.Select(a => a.CollarId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var logs = MasterTelemetry
+            .Where(t => !string.IsNullOrEmpty(t.AnimalId) && visibleCollarIds.Contains(t.AnimalId))
+            .OrderByDescending(t => t.Timestamp)
+            .Take(30);
+
+        foreach (var log in logs)
         {
-            if (SelectedPark == "All Kenya" || matchingCollarIds.Contains(log.AnimalId ?? string.Empty))
-            {
-                FilteredTelemetryLogs.Add(log);
-            }
+            FilteredTelemetryLogs.Add(log);
         }
     }
 
@@ -291,9 +358,9 @@ public class MainViewModel : BindableObject
                     Species = animal.Species,
                     CollarId = animal.CollarId,
                     ParkName = animal.ParkName,
-                    ZoneName = "Kimana Agricultural Buffer Zone",
+                    ZoneName = animal.ParkName.Contains("Amboseli") ? "Kimana Community Dispersal Area" : $"{animal.ParkName} Community Buffer",
                     Severity = "CRITICAL",
-                    Message = $"{animal.Species} '{animal.Name}' ({animal.CollarId}) crossed southern boundary into community buffer.",
+                    Message = $"{animal.Species} '{animal.Name}' ({animal.CollarId}) crossed perimeter into community buffer.",
                     Latitude = animal.Latitude,
                     Longitude = animal.Longitude,
                     Timestamp = DateTime.UtcNow.AddMinutes(-5)
@@ -307,14 +374,117 @@ public class MainViewModel : BindableObject
             : string.Empty;
     }
 
-    private void DispatchPatrol(IncidentAlertDto alert)
+    private async Task DispatchPatrolAsync(IncidentAlertDto alert)
     {
         if (alert == null) return;
 
+        // Find best available patrol unit for the park sector
+        var assignedUnit = PatrolUnits.FirstOrDefault(p => p.Sector.Contains(alert.ParkName) && p.Status == "AVAILABLE")
+                           ?? PatrolUnits.FirstOrDefault(p => p.Status == "AVAILABLE")
+                           ?? PatrolUnits.FirstOrDefault();
+
+        if (assignedUnit != null)
+        {
+            assignedUnit.Status = "DISPATCHED";
+            alert.DispatchedPatrolUnit = $"{assignedUnit.Name} ({assignedUnit.CallSign})";
+            await _apiService.DispatchPatrolAsync(assignedUnit.Id, alert.Latitude, alert.Longitude);
+        }
+        else
+        {
+            alert.DispatchedPatrolUnit = $"KWS Rapid-Response Unit (Sector {alert.ParkName})";
+        }
+
         alert.IsDispatched = true;
-        alert.DispatchedPatrolUnit = $"KWS Quick-Response Unit (Sector {alert.ParkName})";
         OnPropertyChanged(nameof(ActiveIncidents));
-        Debug.WriteLine($"[MainViewModel] Dispatched rapid patrol team for incident: {alert.Message}");
+        OnPropertyChanged(nameof(PatrolUnits));
+        UpdateMapHtml();
+
+        Debug.WriteLine($"[MainViewModel] Dispatched {alert.DispatchedPatrolUnit} for incident: {alert.Message}");
+    }
+
+    private async Task BroadcastCommunitySmsAsync(IncidentAlertDto alert)
+    {
+        if (alert == null) return;
+
+        string corridor = alert.ZoneName;
+        string message = $"KWS EARLY-WARNING ALERT: {alert.Species} '{alert.AnimalName}' entered {corridor}. KWS quick-response patrol dispatched. Please stay clear.";
+
+        bool success = await _apiService.BroadcastCommunitySmsAsync(corridor, message);
+
+        alert.IsSmsBroadcasted = true;
+        alert.SmsBroadcastDetails = "SMS delivered to registered community farmers via KWS Gateway";
+
+        SmsNotificationToast = $"Emergency SMS broadcast sent to local farmers in {corridor} via KWS Africa's Talking Gateway.";
+        ShowSmsToast = true;
+
+        OnPropertyChanged(nameof(ActiveIncidents));
+        OnPropertyChanged(nameof(ShowSmsToast));
+        OnPropertyChanged(nameof(SmsNotificationToast));
+
+        // Auto-hide toast after 5 seconds
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(5000);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                ShowSmsToast = false;
+                OnPropertyChanged(nameof(ShowSmsToast));
+            });
+        });
+    }
+
+    private void OpenResolveModal(IncidentAlertDto alert)
+    {
+        _currentResolvingIncident = alert;
+        ResolutionNotes = $"Wildlife successfully herded back to protected reserve by KWS field unit. Zero damage to local farms.";
+        IsResolveModalOpen = true;
+    }
+
+    private async Task SubmitResolveAsync()
+    {
+        if (_currentResolvingIncident != null)
+        {
+            _currentResolvingIncident.IsResolved = true;
+            _currentResolvingIncident.ResolutionNotes = ResolutionNotes;
+
+            long incId = long.TryParse(_currentResolvingIncident.Id, out var parsed) ? parsed : 1;
+            await _apiService.ResolveIncidentAsync(incId, ResolutionNotes);
+
+            // Also reset animal breach flag locally
+            var animal = MasterAnimals.FirstOrDefault(a => a.CollarId == _currentResolvingIncident.CollarId);
+            if (animal != null)
+            {
+                animal.IsBreaching = false;
+                animal.Status = "Active";
+            }
+
+            ActiveIncidents.Remove(_currentResolvingIncident);
+            HasActiveAlerts = ActiveIncidents.Count > 0;
+            ActiveAlertsSummary = HasActiveAlerts ? $"{ActiveIncidents.Count} Geofence Breach Alert(s) Active" : string.Empty;
+
+            IsResolveModalOpen = false;
+            OnPropertyChanged(nameof(ActiveIncidents));
+            UpdateMapHtml();
+        }
+    }
+
+    private async Task SelectAnimalTrailAsync(AnimalDto animal)
+    {
+        if (animal == null) return;
+        SelectedAnimal = animal;
+
+        var trail = await _apiService.GetAnimalTrailAsync(animal.CollarId);
+        SelectedTrail = trail ?? new List<TelemetryTrailDto>();
+
+        // Center map onto the animal
+        SelectedPark = animal.ParkName;
+        UpdateMapHtml();
+    }
+
+    private async Task SimulateTelemetryStepAsync()
+    {
+        await _apiService.TriggerSimulationStepAsync();
+        await LoadDataAsync();
     }
 
     private async Task SubmitRegistrationAsync()
@@ -340,9 +510,9 @@ public class MainViewModel : BindableObject
         var newAnimal = new AnimalDto
         {
             Id = MasterAnimals.Count + 1,
-            Name = NewAnimalName.Trim(),
+            Name = NewAnimalName,
             Species = NewAnimalSpecies,
-            CollarId = NewCollarId.Trim().ToUpperInvariant(),
+            CollarId = NewCollarId,
             ParkName = NewParkName,
             Sex = NewAnimalSex,
             CollarBattery = 100,
@@ -352,33 +522,19 @@ public class MainViewModel : BindableObject
             IsBreaching = false
         };
 
-        // Post to backend asynchronously
-        _ = _apiService.RegisterAnimalAsync(newAnimal);
+        bool savedToApi = await _apiService.RegisterAnimalAsync(newAnimal);
+        Debug.WriteLine($"[MainViewModel] Register animal API call result: {savedToApi}");
 
-        // Add to local UI collections
-        MasterAnimals.Insert(0, newAnimal);
-        MasterTelemetry.Insert(0, new TelemetryLocation
-        {
-            Id = MasterTelemetry.Count + 100,
-            AnimalId = newAnimal.CollarId,
-            Latitude = newAnimal.Latitude,
-            Longitude = newAnimal.Longitude,
-            Timestamp = DateTime.UtcNow
-        });
-
-        ActiveAnimalsCount = $"{MasterAnimals.Count} Monitored";
-        TelemetryLogsCount = $"{MasterTelemetry.Count} Recorded";
-
+        MasterAnimals.Add(newAnimal);
         ApplyFilter();
         UpdateMapHtml();
 
+        ActiveAnimalsCount = $"{MasterAnimals.Count} Monitored";
         IsRegistrationModalOpen = false;
-        Debug.WriteLine($"[MainViewModel] Successfully registered {newAnimal.Name} to {newAnimal.ParkName}");
     }
 
     private void UpdateMapHtml()
     {
-        // Focus coordinates based on SelectedPark
         double centerLat = -1.286389;
         double centerLng = 36.817223;
         int zoomLevel = 7;
@@ -395,9 +551,15 @@ public class MainViewModel : BindableObject
 
         var animalsToRender = FilteredAnimals.ToList();
         var geofencesToRender = Geofences.ToList();
+        var patrolsToRender = PatrolUnits.ToList();
+        var incidentsToRender = ActiveIncidents.ToList();
+        var trailToRender = SelectedTrail != null ? SelectedTrail.ToList() : new List<TelemetryTrailDto>();
 
         var animalsJson = JsonSerializer.Serialize(animalsToRender);
         var geofencesJson = JsonSerializer.Serialize(geofencesToRender);
+        var patrolsJson = JsonSerializer.Serialize(patrolsToRender);
+        var incidentsJson = JsonSerializer.Serialize(incidentsToRender);
+        var trailJson = JsonSerializer.Serialize(trailToRender);
 
         MapHtml = $@"<!DOCTYPE html>
 <html>
@@ -451,6 +613,32 @@ public class MainViewModel : BindableObject
             border-radius: 50%;
             animation: pulse 1.2s infinite;
         }}
+        .warning-marker {{
+            width: 14px;
+            height: 14px;
+            background: #FF9800;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #FF9800;
+        }}
+        .patrol-marker {{
+            width: 16px;
+            height: 16px;
+            background: #00E5FF;
+            border: 2px solid #ffffff;
+            border-radius: 3px;
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px #00E5FF;
+        }}
+        .patrol-dispatched-marker {{
+            width: 18px;
+            height: 18px;
+            background: #FFD700;
+            border: 2px solid #FF5252;
+            border-radius: 3px;
+            transform: rotate(45deg);
+            animation: pulse 1.0s infinite;
+        }}
         @keyframes pulse {{
             0% {{ box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }}
             70% {{ box-shadow: 0 0 0 10px rgba(255, 82, 82, 0); }}
@@ -473,8 +661,11 @@ public class MainViewModel : BindableObject
 
         var geofences = {geofencesJson};
         var animals = {animalsJson};
+        var patrols = {patrolsJson};
+        var incidents = {incidentsJson};
+        var trailCoords = {trailJson};
 
-        // Render park boundaries
+        // 1. Render park boundaries
         geofences.forEach(function(zone) {{
             if (zone.coordinates && zone.coordinates.length > 0) {{
                 var polygon = L.polygon(zone.coordinates, {{
@@ -491,25 +682,82 @@ public class MainViewModel : BindableObject
             }}
         }});
 
-        // Render wildlife collar markers
+        // 2. Render Breadcrumb Trails if an animal is selected
+        if (trailCoords && trailCoords.length > 1) {{
+            var latLngs = trailCoords.map(function(t) {{ return [t.latitude, t.longitude]; }});
+            var trailLine = L.polyline(latLngs, {{
+                color: '#00E5FF',
+                weight: 4,
+                opacity: 0.9,
+                dashArray: '6, 6'
+            }}).addTo(map);
+            trailLine.bindTooltip('Wildlife Movement Trajectory', {{ sticky: true }});
+        }}
+
+        // 3. Render Wildlife Collar Markers with Health & Immobility Status
         animals.forEach(function(animal) {{
             var isAlert = animal.isBreaching || animal.status === 'Alert';
+            var isLowBattery = animal.collarBattery < 20 || animal.status === 'Low Battery';
+            var isImmobile = animal.status === 'IMMOBILE';
+
+            var markerClass = isAlert ? 'alert-marker' : (isLowBattery || isImmobile ? 'warning-marker' : 'pulse-marker');
+
             var customIcon = L.divIcon({{
                 className: 'custom-pin',
-                html: '<div class=""' + (isAlert ? 'alert-marker' : 'pulse-marker') + '""></div>',
+                html: '<div class=""' + markerClass + '""></div>',
                 iconSize: [16, 16],
                 iconAnchor: [8, 8]
             }});
 
             var marker = L.marker([animal.latitude, animal.longitude], {{ icon: customIcon }}).addTo(map);
+            var statusColor = isAlert ? '#FF5252' : (isLowBattery ? '#FF9800' : '#4CAF50');
+            var statusText = isAlert ? 'GEOFENCE BREACH ALERT' : (isLowBattery ? 'LOW BATTERY WARNING' : 'Normal Patrol');
+
             var popupContent = '<div class=""popup-title"">' + animal.name + ' (' + animal.species + ')</div>' +
                                '<div class=""popup-desc"">' +
                                '<b>Collar:</b> ' + animal.collarId + '<br>' +
                                '<b>Park:</b> ' + animal.parkName + '<br>' +
+                               '<b>Sex:</b> ' + animal.sex + '<br>' +
                                '<b>Battery:</b> ' + animal.collarBattery + '%<br>' +
-                               '<b>Status:</b> <span style=""color:' + (isAlert ? '#FF5252' : '#4CAF50') + '"">' + (isAlert ? 'GEOFENCE ALERT' : 'Normal Patrol') + '</span>' +
+                               '<b>Status:</b> <span style=""color:' + statusColor + ';font-weight:bold;"">' + statusText + '</span>' +
                                '</div>';
             marker.bindPopup(popupContent);
+        }});
+
+        // 4. Render Ranger Patrol Units on the GIS Map
+        patrols.forEach(function(patrol) {{
+            var isDispatched = patrol.status === 'DISPATCHED';
+            var patrolIcon = L.divIcon({{
+                className: 'custom-patrol-pin',
+                html: '<div class=""' + (isDispatched ? 'patrol-dispatched-marker' : 'patrol-marker') + '""></div>',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            }});
+
+            var pMarker = L.marker([patrol.latitude, patrol.longitude], {{ icon: patrolIcon }}).addTo(map);
+            var pPopup = '<div class=""popup-title"" style=""color:#00E5FF;"">' + patrol.name + '</div>' +
+                         '<div class=""popup-desc"">' +
+                         '<b>Call Sign:</b> ' + patrol.callSign + '<br>' +
+                         '<b>Type:</b> ' + patrol.unitType + '<br>' +
+                         '<b>Sector:</b> ' + patrol.sector + '<br>' +
+                         '<b>Status:</b> <span style=""color:' + (isDispatched ? '#FFD700' : '#00E5FF') + ';font-weight:bold;"">' + patrol.status + '</span>' +
+                         '</div>';
+            pMarker.bindPopup(pPopup);
+        }});
+
+        // 5. Render Vector Dispatch Routes for Active Patrol Dispatches
+        incidents.forEach(function(inc) {{
+            if (inc.isDispatched && patrols && patrols.length > 0) {{
+                var assigned = patrols.find(function(p) {{ return p.status === 'DISPATCHED'; }}) || patrols[0];
+                if (assigned) {{
+                    L.polyline([[assigned.latitude, assigned.longitude], [inc.latitude, inc.longitude]], {{
+                        color: '#FF9800',
+                        weight: 3,
+                        dashArray: '8, 8',
+                        opacity: 0.95
+                    }}).addTo(map);
+                }}
+            }}
         }});
     </script>
 </body>

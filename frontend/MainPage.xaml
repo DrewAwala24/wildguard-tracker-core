@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:frontend.ViewModels"
+             x:Name="RootPage"
              x:Class="frontend.MainPage"
              BackgroundColor="{StaticResource KwsPrimary}"
              Title="WildGuard Tracker - Kenya Wildlife Service">
@@ -70,6 +72,22 @@
                                     <Label Text="Sync" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
                             </Border>
+
+                            <!-- Simulate GPS Movement Button -->
+                            <Border BackgroundColor="#1E3A8A"
+                                    StrokeShape="RoundRectangle 8"
+                                    Stroke="#60A5FA"
+                                    StrokeThickness="1"
+                                    Padding="10,6"
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SimulateTelemetryStepCommand}" />
+                                </Border.GestureRecognizers>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    
+                                    <Label Text="Simulate GPS" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
                         </HorizontalStackLayout>
                     </Grid>
 
@@ -80,44 +98,103 @@
                             Stroke="#FF5252"
                             StrokeThickness="1.5"
                             Padding="14,12">
-                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto" ColumnSpacing="12" RowSpacing="6">
-                            <Label Grid.Row="0" Grid.Column="0" Text="⚠️" FontSize="20" VerticalOptions="Center"/>
+                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="12" RowSpacing="6">
+                            <Label Grid.Row="0" Grid.Column="0" Text="⚠️" FontSize="22" VerticalOptions="Center"/>
                             
-                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" VerticalOptions="Center" Spacing="2">
                                 <Label Text="HUMAN-WILDLIFE CONFLICT GEOFENCE BREACH" 
                                        FontFamily="MontserratBold" 
                                        FontSize="12" 
                                        TextColor="#FFD700" 
                                        CharacterSpacing="0.5"/>
-                                <Label Text="Elephant detected past Amboseli boundary into Kimana community agriculture buffer." 
+                                <Label Text="{Binding ActiveIncidents[0].Message}" 
                                        FontSize="11" 
                                        TextColor="White" 
                                        Opacity="0.95"/>
                             </VerticalStackLayout>
 
-                            <Border Grid.Row="0" Grid.Column="2"
-                                    BackgroundColor="#2E7D32"
-                                    StrokeShape="RoundRectangle 6"
-                                    Stroke="#4CAF50"
-                                    StrokeThickness="1"
-                                    Padding="10,6"
-                                    VerticalOptions="Center">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding DispatchPatrolCommand}" 
-                                                          CommandParameter="{Binding ActiveIncidents[0]}" />
-                                </Border.GestureRecognizers>
-                                <Label Text="Dispatch Patrol" 
-                                       FontFamily="MontserratBold" 
-                                       FontSize="11" 
-                                       TextColor="White" 
-                                       VerticalOptions="Center"/>
-                            </Border>
+                            <!-- Multi-Action Buttons -->
+                            <HorizontalStackLayout Grid.Row="0" Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                <!-- Dispatch Patrol Button -->
+                                <Border BackgroundColor="#2E7D32"
+                                        StrokeShape="RoundRectangle 6"
+                                        Stroke="#4CAF50"
+                                        StrokeThickness="1"
+                                        Padding="10,6"
+                                        VerticalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding DispatchPatrolCommand}" 
+                                                              CommandParameter="{Binding ActiveIncidents[0]}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="🚙 Dispatch" 
+                                           FontFamily="MontserratBold" 
+                                           FontSize="11" 
+                                           TextColor="White" 
+                                           VerticalOptions="Center"/>
+                                </Border>
 
-                            <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
-                                   Text="Immediate dispatch recommendation: KWS Sector Alpha Quick-Response Unit"
-                                   FontSize="10"
-                                   Opacity="0.8"/>
+                                <!-- Broadcast SMS Button -->
+                                <Border BackgroundColor="#E65100"
+                                        StrokeShape="RoundRectangle 6"
+                                        Stroke="#FFB74D"
+                                        StrokeThickness="1"
+                                        Padding="10,6"
+                                        VerticalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BroadcastSmsCommand}" 
+                                                              CommandParameter="{Binding ActiveIncidents[0]}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="📲 SMS Farmers" 
+                                           FontFamily="MontserratBold" 
+                                           FontSize="11" 
+                                           TextColor="White" 
+                                           VerticalOptions="Center"/>
+                                </Border>
+
+                                <!-- Resolve Button -->
+                                <Border BackgroundColor="#1565C0"
+                                        StrokeShape="RoundRectangle 6"
+                                        Stroke="#64B5F6"
+                                        StrokeThickness="1"
+                                        Padding="10,6"
+                                        VerticalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenResolveModalCommand}" 
+                                                              CommandParameter="{Binding ActiveIncidents[0]}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="✓ Resolve" 
+                                           FontFamily="MontserratBold" 
+                                           FontSize="11" 
+                                           TextColor="White" 
+                                           VerticalOptions="Center"/>
+                                </Border>
+                            </HorizontalStackLayout>
+
+                            <!-- Status Subline -->
+                            <HorizontalStackLayout Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Spacing="12">
+                                <Label Text="{Binding ActiveIncidents[0].DispatchedPatrolUnit, StringFormat='Unit: {0}'}"
+                                       FontSize="10"
+                                       TextColor="#00E5FF"
+                                       IsVisible="{Binding ActiveIncidents[0].IsDispatched}"/>
+                                <Label Text="{Binding ActiveIncidents[0].SmsBroadcastDetails}"
+                                       FontSize="10"
+                                       TextColor="#FFD700"
+                                       IsVisible="{Binding ActiveIncidents[0].IsSmsBroadcasted}"/>
+                            </HorizontalStackLayout>
                         </Grid>
+                    </Border>
+
+                    <!-- SMS Broadcast Confirmation Toast Banner -->
+                    <Border IsVisible="{Binding ShowSmsToast}"
+                            BackgroundColor="#1B5E20"
+                            StrokeShape="RoundRectangle 8"
+                            Stroke="#66BB6A"
+                            StrokeThickness="1"
+                            Padding="12,8">
+                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Label Text="📲" FontSize="14" VerticalOptions="Center"/>
+                            <Label Text="{Binding SmsNotificationToast}" FontSize="11" TextColor="White" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
                     </Border>
 
                     <!-- Kenya National Parks & Conservancies Filter Strip -->
@@ -294,6 +371,14 @@
                                             <Ellipse WidthRequest="8" HeightRequest="8" Fill="#FF5252" VerticalOptions="Center"/>
                                             <Label Text="HWC Breach" FontSize="10" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <BoxView WidthRequest="8" HeightRequest="8" Color="#00E5FF" VerticalOptions="Center"/>
+                                            <Label Text="Patrol 4x4" FontSize="10" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <BoxView WidthRequest="12" HeightRequest="2" Color="#00E5FF" VerticalOptions="Center"/>
+                                            <Label Text="GPS Trail" FontSize="10" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
                                     </HorizontalStackLayout>
                                 </Border>
                             </VerticalStackLayout>
@@ -322,12 +407,15 @@
                             </CollectionView.ItemsLayout>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border WidthRequest="185" 
+                                    <Border WidthRequest="195" 
                                             Padding="14" 
                                             BackgroundColor="{StaticResource KwsCardBackground}" 
                                             StrokeShape="RoundRectangle 12"
                                             Stroke="#25FFFFFF"
                                             StrokeThickness="1">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding BindingContext.SelectAnimalTrailCommand, Source={x:Reference RootPage}}" CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
                                         <Grid RowDefinitions="Auto, *, Auto, Auto" RowSpacing="6">
                                             <!-- Species Chip & Battery Status -->
                                             <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
@@ -345,10 +433,10 @@
                                                            LineBreakMode="TailTruncation"/>
                                                 </Border>
                                                 <Label Grid.Column="1" 
-                                                       Text="{Binding CollarBattery, StringFormat='🔋{0}%'}" 
-                                                       FontSize="10" 
-                                                       Opacity="0.8" 
-                                                       VerticalOptions="Center"/>
+                                                        Text="{Binding CollarBattery, StringFormat='🔋{0}%'}" 
+                                                        FontSize="10" 
+                                                        Opacity="0.8" 
+                                                        VerticalOptions="Center"/>
                                             </Grid>
 
                                             <!-- Animal Name -->
@@ -366,7 +454,7 @@
                                                      Color="#20FFFFFF" 
                                                      Margin="0,2"/>
 
-                                            <!-- Sector & Collar ID -->
+                                            <!-- Sector, Collar ID & Trail Trigger -->
                                             <VerticalStackLayout Grid.Row="3" Spacing="2">
                                                 <Label Text="{Binding ParkName, StringFormat='Sector: {0}'}" 
                                                        FontSize="11" 
@@ -376,6 +464,12 @@
                                                 <Label Text="{Binding CollarId, StringFormat='Collar: {0}'}" 
                                                        FontSize="10" 
                                                        Opacity="0.6"/>
+                                                <Label Text="📍 View Trajectory Trail" 
+                                                       FontSize="10" 
+                                                       FontFamily="MontserratBold"
+                                                       TextColor="#00E5FF" 
+                                                       Opacity="0.85"
+                                                       Margin="0,2,0,0"/>
                                             </VerticalStackLayout>
                                         </Grid>
                                     </Border>
@@ -584,6 +678,80 @@
                                 <TapGestureRecognizer Command="{Binding SubmitRegistrationCommand}" />
                             </Border.GestureRecognizers>
                             <Label Text="Deploy Collar" FontFamily="MontserratBold" FontSize="12" HorizontalTextAlignment="Center" TextColor="{StaticResource KwsAccent}"/>
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- RESOLVE INCIDENT MODAL OVERLAY -->
+        <Grid IsVisible="{Binding IsResolveModalOpen}"
+              BackgroundColor="#CC000000"
+              Padding="24"
+              HorizontalOptions="Fill"
+              VerticalOptions="Fill">
+            <Border BackgroundColor="#2B3815"
+                    StrokeShape="RoundRectangle 16"
+                    Stroke="{StaticResource KwsAccent}"
+                    StrokeThickness="1.5"
+                    Padding="24"
+                    WidthRequest="420"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center">
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label Text="RESOLVE GEOFENCE INCIDENT" 
+                                   FontSize="16" 
+                                   FontFamily="MontserratBold" 
+                                   TextColor="{StaticResource KwsAccent}"/>
+                            <Label Text="KWS Field Incident Resolution &amp; Ranger Report" 
+                                   FontSize="11" 
+                                   Opacity="0.7"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" 
+                               Text="✕" 
+                               FontSize="18" 
+                               TextColor="White" 
+                               VerticalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CloseResolveModalCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="#33FFFFFF"/>
+
+                    <!-- Field Resolution Notes Input -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="FIELD RANGER ACTION &amp; RESOLUTION NOTES" FontSize="10" FontFamily="MontserratBold" Opacity="0.8"/>
+                        <Border BackgroundColor="#1A000000" StrokeShape="RoundRectangle 8" Stroke="#33FFFFFF" Padding="8,6">
+                            <Editor Text="{Binding ResolutionNotes}" HeightRequest="80" TextColor="White" FontSize="12" AutoSize="TextChanges"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Modal Actions -->
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0,8,0,0">
+                        <Border Grid.Column="0"
+                                BackgroundColor="#22000000"
+                                StrokeShape="RoundRectangle 8"
+                                Stroke="#44FFFFFF"
+                                Padding="12,10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CloseResolveModalCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="Cancel" FontFamily="MontserratBold" FontSize="12" HorizontalTextAlignment="Center" TextColor="White"/>
+                        </Border>
+
+                        <Border Grid.Column="1"
+                                BackgroundColor="#1565C0"
+                                StrokeShape="RoundRectangle 8"
+                                Stroke="#64B5F6"
+                                Padding="12,10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SubmitResolveCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label Text="✓ Confirm Resolution" FontFamily="MontserratBold" FontSize="12" HorizontalTextAlignment="Center" TextColor="White"/>
                         </Border>
                     </Grid>
                 </VerticalStackLayout>

@@ -1,6 +1,7 @@
 package com.kws.backend.backend.service;
 
 import com.kws.backend.backend.dto.TelemetryRequestDto;
+import com.kws.backend.backend.dto.TelemetryTrailDto;
 import com.kws.backend.backend.model.Animal;
 import com.kws.backend.backend.model.TelemetryLocation;
 import com.kws.backend.backend.repository.AnimalRepository;
@@ -11,7 +12,10 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,5 +48,19 @@ public class TelemetryService {
 
     public List<TelemetryLocation> getAllTelemetry() {
         return telemetryRepository.findAll();
+    }
+
+    public List<TelemetryTrailDto> getAnimalTrail(String collarId) {
+        var animalOpt = animalRepository.findByCollarId(collarId);
+        if (animalOpt.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<TelemetryLocation> recent = telemetryRepository.findTop15ByAnimalIdOrderByTimestampDesc(animalOpt.get().getId());
+        // Reverse so it's chronologically oldest to newest for map polyline
+        Collections.reverse(recent);
+        return recent.stream()
+                .filter(t -> t.getLocation() != null)
+                .map(t -> new TelemetryTrailDto(t.getLocation().getY(), t.getLocation().getX(), t.getTimestamp()))
+                .collect(Collectors.toList());
     }
 }

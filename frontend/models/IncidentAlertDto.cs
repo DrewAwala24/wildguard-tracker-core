@@ -42,4 +42,16 @@ public class IncidentAlertDto
 
     [JsonPropertyName("dispatchedPatrolUnit")]
     public string DispatchedPatrolUnit { get; set; } = string.Empty;
+
+    [JsonPropertyName("isResolved")]
+    public bool IsResolved { get; set; } = false;
+
+    [JsonPropertyName("resolutionNotes")]
+    public string ResolutionNotes { get; set; } = string.Empty;
+
+    [JsonPropertyName("isSmsBroadcasted")]
+    public bool IsSmsBroadcasted { get; set; } = false;
+
+    [JsonPropertyName("smsBroadcastDetails")]
+    public string SmsBroadcastDetails { get; set; } = string.Empty;
 }

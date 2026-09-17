@@ -120,6 +120,113 @@ public class ApiService
         return GetVerifiedKenyaGeofences();
     }
 
+    public async Task<List<PatrolUnitDto>> GetPatrolUnitsAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"{BaseUrl}/api/patrols");
+            if (response.IsSuccessStatusCode)
+            {
+                var units = await response.Content.ReadFromJsonAsync<List<PatrolUnitDto>>(JsonOptions);
+                if (units != null && units.Count > 0)
+                {
+                    return units;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ApiService] Failed to fetch patrol units: {ex.Message}. Using default KWS units.");
+        }
+
+        return GetDefaultPatrolUnits();
+    }
+
+    public async Task<bool> DispatchPatrolAsync(long patrolId, double targetLat, double targetLng)
+    {
+        try
+        {
+            var payload = new { latitude = targetLat, longitude = targetLng };
+            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/patrols/{patrolId}/dispatch", payload);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ApiService] Failed to dispatch patrol unit {patrolId}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> BroadcastCommunitySmsAsync(string corridor, string message)
+    {
+        try
+        {
+            var payload = new Dictionary<string, string>
+            {
+                { "corridor", corridor },
+                { "message", message }
+            };
+            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/incidents/broadcast", payload);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ApiService] Failed to broadcast community SMS: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> ResolveIncidentAsync(long incidentId, string notes)
+    {
+        try
+        {
+            var payload = new Dictionary<string, string> { { "notes", notes } };
+            var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/incidents/{incidentId}/resolve", payload);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ApiService] Failed to resolve incident {incidentId}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<TelemetryTrailDto>> GetAnimalTrailAsync(string collarId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"{BaseUrl}/api/telemetry/animal/{collarId}/trail");
+            if (response.IsSuccessStatusCode)
+            {
+                var trail = await response.Content.ReadFromJsonAsync<List<TelemetryTrailDto>>(JsonOptions);
+                if (trail != null && trail.Count > 0)
+                {
+                    return trail;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ApiService] Failed to fetch trail for {collarId}: {ex.Message}");
+        }
+
+        return new List<TelemetryTrailDto>();
+    }
+
+    public async Task<bool> TriggerSimulationStepAsync()
+    {
+        try
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/api/telemetry/simulate", null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ApiService] Simulation trigger failed: {ex.Message}");
+            return false;
+        }
+    }
+
     private void NormalizeTelemetry(List<TelemetryLocation> telemetryList)
     {
         foreach (var item in telemetryList)
@@ -428,6 +535,17 @@ public class ApiService
                     new[] { 0.00, 36.88 }
                 }
             }
+        };
+    }
+
+    public static List<PatrolUnitDto> GetDefaultPatrolUnits()
+    {
+        return new List<PatrolUnitDto>
+        {
+            new() { Id = 1, Name = "Amboseli Rhino & Elephant Rapid Unit", CallSign = "PATROL-AMB-01", UnitType = "LAND_CRUISER", Latitude = -2.6210, Longitude = 37.2450, Status = "AVAILABLE", Sector = "Amboseli NP" },
+            new() { Id = 2, Name = "Tsavo East Strike Team", CallSign = "PATROL-TSV-03", UnitType = "LAND_CRUISER", Latitude = -2.8540, Longitude = 38.6010, Status = "AVAILABLE", Sector = "Tsavo East NP" },
+            new() { Id = 3, Name = "Mara Predator Rapid Response", CallSign = "PATROL-MAR-02", UnitType = "LAND_CRUISER", Latitude = -1.4500, Longitude = 35.1500, Status = "AVAILABLE", Sector = "Maasai Mara" },
+            new() { Id = 4, Name = "KWS Airwing Recon Cessna", CallSign = "AIRWING-KWS-09", UnitType = "AIRWING", Latitude = -1.3650, Longitude = 36.8500, Status = "AVAILABLE", Sector = "Nairobi NP" }
         };
     }
 }
