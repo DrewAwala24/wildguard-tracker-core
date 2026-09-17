@@ -2,10 +2,17 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:frontend.ViewModels"
+             xmlns:converters="clr-namespace:frontend.Converters"
              x:Name="RootPage"
              x:Class="frontend.MainPage"
              BackgroundColor="{StaticResource KwsPrimary}"
              Title="WildGuard Tracker - Kenya Wildlife Service">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:AnimalImageConverter x:Key="AnimalImageConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid>
         <!-- MAIN DASHBOARD CONTENT -->
@@ -401,77 +408,88 @@
                                    VerticalOptions="Center"/>
                         </Grid>
 
-                        <CollectionView ItemsSource="{Binding FilteredAnimals}" HeightRequest="205">
+                        <CollectionView ItemsSource="{Binding FilteredAnimals}" HeightRequest="270">
                             <CollectionView.ItemsLayout>
                                 <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12"/>
                             </CollectionView.ItemsLayout>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
                                     <Border WidthRequest="195" 
-                                            Padding="14" 
+                                            Padding="0" 
                                             BackgroundColor="{StaticResource KwsCardBackground}" 
                                             StrokeShape="RoundRectangle 12"
                                             Stroke="#25FFFFFF"
                                             StrokeThickness="1">
                                         <Border.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding BindingContext.SelectAnimalTrailCommand, Source={x:Reference RootPage}}" CommandParameter="{Binding .}" />
+                                            <TapGestureRecognizer Command="{Binding BindingContext.SelectAnimalDetailCommand, Source={x:Reference RootPage}}" CommandParameter="{Binding .}" />
                                         </Border.GestureRecognizers>
-                                        <Grid RowDefinitions="Auto, *, Auto, Auto" RowSpacing="6">
-                                            <!-- Species Chip & Battery Status -->
-                                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                                                <Border Grid.Column="0"
-                                                        HorizontalOptions="Start"
-                                                        BackgroundColor="#22000000"
-                                                        StrokeShape="RoundRectangle 6"
-                                                        Stroke="#22FFFFFF"
-                                                        StrokeThickness="1"
-                                                        Padding="8,3">
-                                                    <Label Text="{Binding Species}" 
-                                                           FontSize="10" 
-                                                           TextColor="{StaticResource KwsTextWhite}"
-                                                           Opacity="0.9"
-                                                           LineBreakMode="TailTruncation"/>
-                                                </Border>
-                                                <Label Grid.Column="1" 
-                                                        Text="{Binding CollarBattery, StringFormat='🔋{0}%'}" 
-                                                        FontSize="10" 
-                                                        Opacity="0.8" 
-                                                        VerticalOptions="Center"/>
-                                            </Grid>
+                                        <VerticalStackLayout Spacing="0">
 
-                                            <!-- Animal Name -->
-                                            <Label Grid.Row="1"
-                                                   Text="{Binding Name}" 
-                                                   FontSize="15" 
-                                                   FontFamily="MontserratBold" 
-                                                   TextColor="{StaticResource KwsAccent}"
-                                                   LineBreakMode="TailTruncation"
-                                                   VerticalOptions="Center"/>
+                                            <!-- Animal Photo -->
+                                            <Border StrokeShape="RoundRectangle 12,12,0,0"
+                                                    Stroke="Transparent"
+                                                    HeightRequest="120"
+                                                    HorizontalOptions="Fill">
+                                                <Image Source="{Binding Name, Converter={StaticResource AnimalImageConverter}}"
+                                                       Aspect="AspectFill"
+                                                       HorizontalOptions="Fill"
+                                                       VerticalOptions="Fill" />
+                                            </Border>
 
-                                            <!-- Divider -->
-                                            <BoxView Grid.Row="2" 
-                                                     HeightRequest="1" 
-                                                     Color="#20FFFFFF" 
-                                                     Margin="0,2"/>
+                                            <!-- Card Body -->
+                                            <VerticalStackLayout Padding="12,8,12,10" Spacing="4">
 
-                                            <!-- Sector, Collar ID & Trail Trigger -->
-                                            <VerticalStackLayout Grid.Row="3" Spacing="2">
-                                                <Label Text="{Binding ParkName, StringFormat='Sector: {0}'}" 
-                                                       FontSize="11" 
-                                                       TextColor="White"
-                                                       Opacity="0.9"
-                                                       LineBreakMode="TailTruncation"/>
-                                                <Label Text="{Binding CollarId, StringFormat='Collar: {0}'}" 
-                                                       FontSize="10" 
-                                                       Opacity="0.6"/>
-                                                <Label Text="📍 View Trajectory Trail" 
-                                                       FontSize="10" 
+                                                <!-- Species Chip & Battery Status -->
+                                                <Grid ColumnDefinitions="*, Auto">
+                                                    <Border Grid.Column="0"
+                                                            HorizontalOptions="Start"
+                                                            BackgroundColor="#22000000"
+                                                            StrokeShape="RoundRectangle 6"
+                                                            Stroke="#22FFFFFF"
+                                                            StrokeThickness="1"
+                                                            Padding="7,2">
+                                                        <Label Text="{Binding Species}"
+                                                               FontSize="9"
+                                                               TextColor="{StaticResource KwsTextWhite}"
+                                                               Opacity="0.9"
+                                                               LineBreakMode="TailTruncation"/>
+                                                    </Border>
+                                                    <Label Grid.Column="1"
+                                                           Text="{Binding CollarBattery, StringFormat='🔋{0}%'}"
+                                                           FontSize="9"
+                                                           Opacity="0.8"
+                                                           VerticalOptions="Center"/>
+                                                </Grid>
+
+                                                <!-- Animal Name -->
+                                                <Label Text="{Binding Name}"
+                                                       FontSize="14"
                                                        FontFamily="MontserratBold"
-                                                       TextColor="#00E5FF" 
+                                                       TextColor="{StaticResource KwsAccent}"
+                                                       LineBreakMode="TailTruncation"
+                                                       MaxLines="1"/>
+
+                                                <!-- Divider -->
+                                                <BoxView HeightRequest="1" Color="#20FFFFFF" Margin="0,1"/>
+
+                                                <!-- Sector & Collar -->
+                                                <Label Text="{Binding ParkName, StringFormat='Sector: {0}'}"
+                                                       FontSize="10"
+                                                       TextColor="White"
                                                        Opacity="0.85"
-                                                       Margin="0,2,0,0"/>
+                                                       LineBreakMode="TailTruncation"/>
+                                                <Label Text="{Binding CollarId, StringFormat='Collar: {0}'}"
+                                                       FontSize="9"
+                                                       Opacity="0.55"
+                                                       LineBreakMode="TailTruncation"/>
+                                                <Label Text="📍 View Profile"
+                                                       FontSize="9"
+                                                       FontFamily="MontserratBold"
+                                                       TextColor="#00E5FF"
+                                                       Opacity="0.85"/>
+
                                             </VerticalStackLayout>
-                                        </Grid>
+                                        </VerticalStackLayout>
                                     </Border>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
@@ -757,5 +775,198 @@
                 </VerticalStackLayout>
             </Border>
         </Grid>
+
+        <!-- ════════════════════════════════════════════════════════════
+             RIGHT-SIDE SLIDING ANIMAL DETAIL PANEL
+             Triggered when user taps an animal card.
+             IsVisible is toggled from code-behind via IsDetailPanelOpen.
+             ════════════════════════════════════════════════════════════ -->
+
+        <!-- Dim scrim behind panel -->
+        <BoxView x:Name="DetailPanelScrim"
+                 IsVisible="False"
+                 Color="#99000000"
+                 HorizontalOptions="Fill"
+                 VerticalOptions="Fill">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnDetailPanelScrimTapped" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Sliding panel itself -->
+        <Border x:Name="DetailPanel"
+                IsVisible="False"
+                HorizontalOptions="End"
+                VerticalOptions="Fill"
+                WidthRequest="320"
+                BackgroundColor="#1A2E0A"
+                StrokeShape="RoundRectangle 16,0,0,16"
+                Stroke="{StaticResource KwsAccent}"
+                StrokeThickness="1.5"
+                TranslationX="320">
+            <ScrollView>
+                <VerticalStackLayout Spacing="0">
+
+                    <!-- Panel Header -->
+                    <Grid ColumnDefinitions="*, Auto" Padding="18,16,16,0">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="ANIMAL PROFILE"
+                                   FontSize="11"
+                                   FontFamily="MontserratBold"
+                                   CharacterSpacing="1"
+                                   Opacity="0.65"
+                                   TextColor="{StaticResource KwsTextWhite}"/>
+                            <Label x:Name="DetailAnimalName"
+                                   FontSize="20"
+                                   FontFamily="MontserratBold"
+                                   TextColor="{StaticResource KwsAccent}"
+                                   LineBreakMode="TailTruncation"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1"
+                               Text="✕"
+                               FontSize="20"
+                               TextColor="White"
+                               VerticalOptions="Start"
+                               Margin="0,4,0,0">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnDetailPanelClose" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </Grid>
+
+                    <!-- Large Animal Photo -->
+                    <Border Margin="18,14,18,0"
+                            StrokeShape="RoundRectangle 12"
+                            Stroke="#33FFFFFF"
+                            HeightRequest="200"
+                            HorizontalOptions="Fill">
+                        <Image x:Name="DetailAnimalPhoto"
+                               Aspect="AspectFill"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill" />
+                    </Border>
+
+                    <!-- Species Chip -->
+                    <Border HorizontalOptions="Start"
+                            Margin="18,12,18,0"
+                            BackgroundColor="#22000000"
+                            StrokeShape="RoundRectangle 20"
+                            Stroke="{StaticResource KwsAccent}"
+                            StrokeThickness="1"
+                            Padding="12,5">
+                        <Label x:Name="DetailSpecies"
+                               FontSize="12"
+                               FontFamily="MontserratBold"
+                               TextColor="{StaticResource KwsAccent}"/>
+                    </Border>
+
+                    <BoxView HeightRequest="1" Color="#22FFFFFF" Margin="18,14,18,0"/>
+
+                    <!-- Detail Stats Grid -->
+                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto"
+                          ColumnSpacing="12" RowSpacing="12"
+                          Padding="18,14,18,0">
+
+                        <!-- Collar ID -->
+                        <Border Grid.Row="0" Grid.Column="0"
+                                BackgroundColor="#15FFFFFF"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="#20FFFFFF"
+                                Padding="12,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="COLLAR ID" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailCollarId" FontSize="12" FontFamily="MontserratBold" TextColor="White" LineBreakMode="TailTruncation"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Sex -->
+                        <Border Grid.Row="0" Grid.Column="1"
+                                BackgroundColor="#15FFFFFF"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="#20FFFFFF"
+                                Padding="12,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="SEX" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailSex" FontSize="12" FontFamily="MontserratBold" TextColor="White"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Sector / Park -->
+                        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                BackgroundColor="#15FFFFFF"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="#20FFFFFF"
+                                Padding="12,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="SECTOR / PARK" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailPark" FontSize="12" FontFamily="MontserratBold" TextColor="White" LineBreakMode="WordWrap"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Battery -->
+                        <Border Grid.Row="2" Grid.Column="0"
+                                BackgroundColor="#15FFFFFF"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="#20FFFFFF"
+                                Padding="12,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="BATTERY" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailBattery" FontSize="14" FontFamily="MontserratBold" TextColor="{StaticResource KwsAccent}"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Status -->
+                        <Border Grid.Row="2" Grid.Column="1"
+                                BackgroundColor="#15FFFFFF"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="#20FFFFFF"
+                                Padding="12,10">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="STATUS" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailStatus" FontSize="12" FontFamily="MontserratBold" TextColor="#4CAF50"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                    </Grid>
+
+                    <!-- GPS Coordinates -->
+                    <Border Margin="18,12,18,0"
+                            BackgroundColor="#0DFFFFFF"
+                            StrokeShape="RoundRectangle 10"
+                            Stroke="#20FFFFFF"
+                            Padding="14,12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="LAST KNOWN POSITION" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                            <Label x:Name="DetailCoordinates"
+                                   FontSize="12"
+                                   TextColor="#00E5FF"
+                                   FontFamily="MontserratBold"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Action: View Trajectory -->
+                    <Border Margin="18,14,18,28"
+                            BackgroundColor="#2D4A18"
+                            StrokeShape="RoundRectangle 10"
+                            Stroke="{StaticResource KwsAccent}"
+                            StrokeThickness="1"
+                            Padding="14,12">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnViewTrajectoryTapped" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label Text="📍" FontSize="16" VerticalOptions="Center"/>
+                            <Label Text="View GPS Trajectory Trail"
+                                   FontSize="13"
+                                   FontFamily="MontserratBold"
+                                   TextColor="{StaticResource KwsAccent}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+
     </Grid>
 </ContentPage>

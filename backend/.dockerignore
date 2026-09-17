@@ -1,0 +1,11 @@
+﻿# Keep Docker build context lean — exclude everything not needed inside the image
+.git
+.gitignore
+.gitattributes
+.idea
+.gradle
+*.iml
+build/
+*.md
+Dockerfile
+.dockerignore

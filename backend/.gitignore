@@ -41,3 +41,10 @@ build/
 .gradle/
 .idea/
 *.class
+### Secrets — NEVER commit these ###
+.env
+*.env
+application-local.properties
+application-local.yml
+application-secret.properties
+secrets.properties

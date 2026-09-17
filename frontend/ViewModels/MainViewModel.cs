@@ -68,6 +68,9 @@ public class MainViewModel : BindableObject
     public ICommand CloseRegistrationCommand { get; }
     public ICommand SubmitRegistrationCommand { get; }
 
+    // Set by MainPage code-behind after construction (opens detail panel)
+    public ICommand? SelectAnimalDetailCommand { get; set; }
+
     public bool IsRefreshing
     {
         get => _isRefreshing;
