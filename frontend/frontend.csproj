@@ -72,6 +72,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Views\" />
+	  <MauiXaml Remove="Platforms\Windows\App.xaml" />
 	</ItemGroup>
 
 </Project>

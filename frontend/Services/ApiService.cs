@@ -8,7 +8,7 @@ namespace frontend.Services;
 public class ApiService
 {
     private readonly HttpClient _httpClient;
-    private const string BaseUrl = "http://localhost:8080";
+    public const string BaseUrl = "http://localhost:8080";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

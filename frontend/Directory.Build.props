@@ -1,0 +1,13 @@
+<Project>
+  <!--
+    Keep built executables/DLLs off OneDrive. Windows Smart App Control
+    blocks unsigned Debug binaries under OneDrive (FileLoadException 0x800711C7).
+
+    Do not relocate obj/BaseIntermediateOutputPath: MAUI SourceGen and the
+    WinUI XAML compiler both emit InitializeComponent, and an out-of-tree obj
+    folder makes SourceGen compile the WinUI copy of Platforms/Windows/App.xaml.
+  -->
+  <PropertyGroup>
+    <BaseOutputPath>$(LOCALAPPDATA)\KWS-frontend\bin\</BaseOutputPath>
+  </PropertyGroup>
+</Project>
