@@ -80,21 +80,6 @@
                                 </HorizontalStackLayout>
                             </Border>
 
-                            <!-- Simulate GPS Movement Button -->
-                            <Border BackgroundColor="#1E3A8A"
-                                    StrokeShape="RoundRectangle 8"
-                                    Stroke="#60A5FA"
-                                    StrokeThickness="1"
-                                    Padding="10,6"
-                                    VerticalOptions="Center">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding SimulateTelemetryStepCommand}" />
-                                </Border.GestureRecognizers>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                    
-                                    <Label Text="Simulate GPS" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}" VerticalOptions="Center"/>
-                                </HorizontalStackLayout>
-                            </Border>
                         </HorizontalStackLayout>
                     </Grid>
 
@@ -340,6 +325,10 @@
                                 <Label Text="Real-time collar fixes, national park boundaries &amp; buffer corridors" 
                                        FontSize="11" 
                                        Opacity="0.7"/>
+                                <Label Text="{Binding LiveFeedStatus}"
+                                       FontSize="11"
+                                       FontFamily="MontserratBold"
+                                       TextColor="#7CFF6B"/>
                             </VerticalStackLayout>
                             <Label Grid.Column="1" 
                                    Text="{Binding SelectedPark}" 
@@ -355,8 +344,10 @@
                                 StrokeThickness="1">
                             <VerticalStackLayout>
                                 <!-- Map WebView Component -->
-                                <WebView Source="{Binding MapHtmlSource}"
-                                         HeightRequest="290"
+                                <WebView x:Name="OpsMapWebView"
+                                         Source="{Binding MapHtmlSource}"
+                                         Navigated="OnOpsMapNavigated"
+                                         HeightRequest="420"
                                          HorizontalOptions="Fill" />
 
                                 <!-- Map Legend Bar -->
@@ -481,6 +472,11 @@
                                                 <Label Text="{Binding CollarId, StringFormat='Collar: {0}'}"
                                                        FontSize="9"
                                                        Opacity="0.55"
+                                                       LineBreakMode="TailTruncation"/>
+                                                <Label Text="{Binding CoordinateDisplay, StringFormat='GPS: {0}'}"
+                                                       FontSize="9"
+                                                       TextColor="#7CFF6B"
+                                                       Opacity="0.9"
                                                        LineBreakMode="TailTruncation"/>
                                                 <Label Text="📍 View Profile"
                                                        FontSize="9"

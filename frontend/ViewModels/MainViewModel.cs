@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows.Input;
@@ -10,6 +10,10 @@ namespace frontend.ViewModels;
 public class MainViewModel : BindableObject
 {
     private readonly ApiService _apiService;
+    private readonly Random _movementRng = new();
+    private readonly Dictionary<string, double> _movementHeadings = new(StringComparer.OrdinalIgnoreCase);
+    private IDispatcherTimer? _liveMovementTimer;
+    private int _liveMovementTickGate;
     private bool _isRefreshing;
     private string _activeAnimalsCount = "0 Tracked";
     private string _telemetryLogsCount = "0 Recorded";
@@ -41,6 +45,8 @@ public class MainViewModel : BindableObject
 
     // Map HTML Content for WebView
     private string _mapHtml = string.Empty;
+    private readonly HtmlWebViewSource _mapHtmlSource = new();
+    private string _liveFeedStatus = "LIVE collar feed startingâ€¦";
 
     // Source master lists
     public List<AnimalDto> MasterAnimals { get; } = new();
@@ -63,13 +69,13 @@ public class MainViewModel : BindableObject
     public ICommand CloseResolveModalCommand { get; }
     public ICommand SubmitResolveCommand { get; }
     public ICommand SelectAnimalTrailCommand { get; }
-    public ICommand SimulateTelemetryStepCommand { get; }
     public ICommand OpenRegistrationCommand { get; }
     public ICommand CloseRegistrationCommand { get; }
     public ICommand SubmitRegistrationCommand { get; }
 
-    // Set by MainPage code-behind after construction (opens detail panel)
+    // Set by MainPage code-behind after construction (opens detail panel / JS inject)
     public ICommand? SelectAnimalDetailCommand { get; set; }
+    public Func<string, Task>? InjectLiveMapScript { get; set; }
 
     public bool IsRefreshing
     {
@@ -205,6 +211,12 @@ public class MainViewModel : BindableObject
         set { if (_newAnimalSex != value) { _newAnimalSex = value; OnPropertyChanged(); } }
     }
 
+    public string LiveFeedStatus
+    {
+        get => _liveFeedStatus;
+        set { if (_liveFeedStatus != value) { _liveFeedStatus = value; OnPropertyChanged(); } }
+    }
+
     public string MapHtml
     {
         get => _mapHtml;
@@ -213,13 +225,14 @@ public class MainViewModel : BindableObject
             if (_mapHtml != value)
             {
                 _mapHtml = value;
+                _mapHtmlSource.Html = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(MapHtmlSource));
             }
         }
     }
 
-    public HtmlWebViewSource MapHtmlSource => new() { Html = MapHtml };
+    public HtmlWebViewSource MapHtmlSource => _mapHtmlSource;
 
     public MainViewModel(ApiService apiService)
     {
@@ -234,7 +247,6 @@ public class MainViewModel : BindableObject
         CloseResolveModalCommand = new Command(() => IsResolveModalOpen = false);
         SubmitResolveCommand = new Command(async () => await SubmitResolveAsync());
         SelectAnimalTrailCommand = new Command<AnimalDto>(async animal => await SelectAnimalTrailAsync(animal));
-        SimulateTelemetryStepCommand = new Command(async () => await SimulateTelemetryStepAsync());
 
         OpenRegistrationCommand = new Command(() =>
         {
@@ -248,6 +260,8 @@ public class MainViewModel : BindableObject
 
         CloseRegistrationCommand = new Command(() => IsRegistrationModalOpen = false);
         SubmitRegistrationCommand = new Command(async () => await SubmitRegistrationAsync());
+
+        MainThread.BeginInvokeOnMainThread(StartLiveMovementSimulation);
     }
 
     public async Task LoadDataAsync()
@@ -484,12 +498,6 @@ public class MainViewModel : BindableObject
         UpdateMapHtml();
     }
 
-    private async Task SimulateTelemetryStepAsync()
-    {
-        await _apiService.TriggerSimulationStepAsync();
-        await LoadDataAsync();
-    }
-
     private async Task SubmitRegistrationAsync()
     {
         if (string.IsNullOrWhiteSpace(NewAnimalName) || string.IsNullOrWhiteSpace(NewCollarId))
@@ -536,6 +544,185 @@ public class MainViewModel : BindableObject
         IsRegistrationModalOpen = false;
     }
 
+    private void StartLiveMovementSimulation()
+    {
+        if (_liveMovementTimer != null)
+        {
+            return;
+        }
+
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            MainThread.BeginInvokeOnMainThread(StartLiveMovementSimulation);
+            return;
+        }
+
+        _liveMovementTimer = dispatcher.CreateTimer();
+        _liveMovementTimer.Interval = TimeSpan.FromSeconds(3);
+        _liveMovementTimer.IsRepeating = true;
+        _liveMovementTimer.Tick += OnLiveMovementTick;
+        _liveMovementTimer.Start();
+        Debug.WriteLine("[MainViewModel] Live wildlife movement simulation started.");
+    }
+
+    private async void OnLiveMovementTick(object? sender, EventArgs e)
+    {
+        if (Interlocked.Exchange(ref _liveMovementTickGate, 1) == 1)
+        {
+            return;
+        }
+
+        try
+        {
+            await AdvanceLiveAnimalPositionsAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainViewModel] Live movement tick failed: {ex.Message}");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _liveMovementTickGate, 0);
+        }
+    }
+
+    private async Task AdvanceLiveAnimalPositionsAsync()
+    {
+        if (MasterAnimals.Count == 0)
+        {
+            return;
+        }
+
+        List<object> positions = new();
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            foreach (var animal in MasterAnimals)
+            {
+                ApplySimulatedMovement(animal);
+                positions.Add(new
+                {
+                    collarId = animal.CollarId,
+                    latitude = animal.Latitude,
+                    longitude = animal.Longitude
+                });
+            }
+
+            RecordLiveTelemetrySample();
+            LiveFeedStatus = $"LIVE Â· {DateTime.Now:HH:mm:ss}  {MasterAnimals.Count} collars moving";
+            TelemetryLogsCount = $"{MasterTelemetry.Count} Recorded";
+        });
+
+        var payload = JsonSerializer.Serialize(positions);
+        var script = $"updateAnimalPositions({payload})";
+
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            var inject = InjectLiveMapScript;
+            if (inject != null)
+            {
+                await inject(script);
+            }
+        });
+    }
+
+    private void ApplySimulatedMovement(AnimalDto animal)
+    {
+        if (string.Equals(animal.Status, "IMMOBILE", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (!_movementHeadings.TryGetValue(animal.CollarId, out var heading))
+        {
+            heading = _movementRng.NextDouble() * Math.PI * 2.0;
+        }
+
+        heading += (_movementRng.NextDouble() - 0.5) * 0.55;
+        _movementHeadings[animal.CollarId] = heading;
+
+        var step = ResolveStepLength(animal.Species);
+        var nextLat = animal.Latitude + Math.Cos(heading) * step;
+        var nextLng = animal.Longitude + Math.Sin(heading) * step;
+
+        var bounds = ResolveParkBounds(animal);
+        var clampedLat = Math.Clamp(nextLat, bounds.MinLat, bounds.MaxLat);
+        var clampedLng = Math.Clamp(nextLng, bounds.MinLng, bounds.MaxLng);
+
+        if (Math.Abs(clampedLat - nextLat) > double.Epsilon || Math.Abs(clampedLng - nextLng) > double.Epsilon)
+        {
+            _movementHeadings[animal.CollarId] = heading + Math.PI;
+        }
+
+        animal.Latitude = clampedLat;
+        animal.Longitude = clampedLng;
+    }
+
+    private static double ResolveStepLength(string species)
+    {
+        if (species.Contains("Cheetah", StringComparison.OrdinalIgnoreCase))
+            return 0.0030;
+        if (species.Contains("Lion", StringComparison.OrdinalIgnoreCase))
+            return 0.0022;
+        if (species.Contains("Rhino", StringComparison.OrdinalIgnoreCase))
+            return 0.0011;
+        if (species.Contains("Elephant", StringComparison.OrdinalIgnoreCase))
+            return 0.0018;
+        return 0.0016;
+    }
+
+    private static (double MinLat, double MaxLat, double MinLng, double MaxLng) ResolveParkBounds(AnimalDto animal)
+    {
+        (double MinLat, double MaxLat, double MinLng, double MaxLng) core = animal.ParkName switch
+        {
+            "Amboseli NP" => (-2.78, -2.55, 37.15, 37.40),
+            "Tsavo East NP" => (-3.40, -2.30, 38.35, 39.10),
+            "Maasai Mara" => (-1.65, -1.30, 34.90, 35.40),
+            "Nairobi NP" => (-1.42, -1.32, 36.80, 36.90),
+            "Ol Pejeta" => (-0.05, 0.10, 36.88, 37.05),
+            _ => (-4.70, 1.20, 33.90, 41.90)
+        };
+
+        if (animal.IsBreaching)
+        {
+            return (core.MinLat - 0.045, core.MaxLat + 0.045, core.MinLng - 0.045, core.MaxLng + 0.045);
+        }
+
+        return core;
+    }
+
+    private void RecordLiveTelemetrySample()
+    {
+        if (MasterAnimals.Count == 0) return;
+
+        var animal = MasterAnimals[_movementRng.Next(MasterAnimals.Count)];
+        MasterTelemetry.Insert(0, new TelemetryLocation
+        {
+            Id = DateTime.UtcNow.Ticks,
+            AnimalId = animal.CollarId,
+            CollarId = animal.CollarId,
+            Latitude = animal.Latitude,
+            Longitude = animal.Longitude,
+            Timestamp = DateTime.UtcNow,
+            Animal = animal
+        });
+
+        while (MasterTelemetry.Count > 80)
+        {
+            MasterTelemetry.RemoveAt(MasterTelemetry.Count - 1);
+        }
+
+        FilteredTelemetryLogs.Clear();
+        var visibleCollarIds = FilteredAnimals.Select(a => a.CollarId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var log in MasterTelemetry
+                     .Where(t => !string.IsNullOrEmpty(t.AnimalId) && visibleCollarIds.Contains(t.AnimalId))
+                     .Take(30))
+        {
+            FilteredTelemetryLogs.Add(log);
+        }
+    }
+
     private void UpdateMapHtml()
     {
         double centerLat = -1.286389;
@@ -552,218 +739,14 @@ public class MainViewModel : BindableObject
             default: break;
         }
 
-        var animalsToRender = FilteredAnimals.ToList();
-        var geofencesToRender = Geofences.ToList();
-        var patrolsToRender = PatrolUnits.ToList();
-        var incidentsToRender = ActiveIncidents.ToList();
-        var trailToRender = SelectedTrail != null ? SelectedTrail.ToList() : new List<TelemetryTrailDto>();
-
-        var animalsJson = JsonSerializer.Serialize(animalsToRender);
-        var geofencesJson = JsonSerializer.Serialize(geofencesToRender);
-        var patrolsJson = JsonSerializer.Serialize(patrolsToRender);
-        var incidentsJson = JsonSerializer.Serialize(incidentsToRender);
-        var trailJson = JsonSerializer.Serialize(trailToRender);
-
-        MapHtml = $@"<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
-    <style>
-        html, body, #map {{
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: #2b3815;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }}
-        .leaflet-popup-content-wrapper {{
-            background: #2b3815;
-            color: #ffffff;
-            border: 1px solid #FFD700;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }}
-        .leaflet-popup-tip {{
-            background: #2b3815;
-        }}
-        .popup-title {{
-            font-size: 14px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 4px;
-        }}
-        .popup-desc {{
-            font-size: 11px;
-            color: #e0e0e0;
-            line-height: 1.4;
-        }}
-        .pulse-marker {{
-            width: 14px;
-            height: 14px;
-            background: #FFD700;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #FFD700;
-        }}
-        .alert-marker {{
-            width: 16px;
-            height: 16px;
-            background: #FF5252;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            animation: pulse 1.2s infinite;
-        }}
-        .warning-marker {{
-            width: 14px;
-            height: 14px;
-            background: #FF9800;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #FF9800;
-        }}
-        .patrol-marker {{
-            width: 16px;
-            height: 16px;
-            background: #00E5FF;
-            border: 2px solid #ffffff;
-            border-radius: 3px;
-            transform: rotate(45deg);
-            box-shadow: 0 0 10px #00E5FF;
-        }}
-        .patrol-dispatched-marker {{
-            width: 18px;
-            height: 18px;
-            background: #FFD700;
-            border: 2px solid #FF5252;
-            border-radius: 3px;
-            transform: rotate(45deg);
-            animation: pulse 1.0s infinite;
-        }}
-        @keyframes pulse {{
-            0% {{ box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }}
-            70% {{ box-shadow: 0 0 0 10px rgba(255, 82, 82, 0); }}
-            100% {{ box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }}
-        }}
-    </style>
-</head>
-<body>
-    <div id='map'></div>
-    <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
-    <script>
-        var map = L.map('map', {{ zoomControl: false }}).setView([{centerLat}, {centerLng}], {zoomLevel});
-        L.control.zoom({{ position: 'topright' }}).addTo(map);
-
-        // OpenStreetMap CartoDB Dark/Outdoors tile layer
-        L.tileLayer('https://{{s}}.basemaps.cartocdn.com/rastertiles/voyager/{{z}}/{{x}}/{{y}}{{r}}.png', {{
-            attribution: 'Kenya Wildlife Service • OpenStreetMap',
-            maxZoom: 18
-        }}).addTo(map);
-
-        var geofences = {geofencesJson};
-        var animals = {animalsJson};
-        var patrols = {patrolsJson};
-        var incidents = {incidentsJson};
-        var trailCoords = {trailJson};
-
-        // 1. Render park boundaries
-        geofences.forEach(function(zone) {{
-            if (zone.coordinates && zone.coordinates.length > 0) {{
-                var polygon = L.polygon(zone.coordinates, {{
-                    color: zone.colorHex || '#4CAF50',
-                    weight: zone.zoneType === 'COMMUNITY_BUFFER' ? 2 : 3,
-                    dashArray: zone.zoneType === 'COMMUNITY_BUFFER' ? '5, 5' : null,
-                    fillOpacity: zone.zoneType === 'COMMUNITY_BUFFER' ? 0.15 : 0.25
-                }}).addTo(map);
-
-                polygon.bindTooltip('<b>' + zone.zoneName + '</b><br>Type: ' + zone.zoneType, {{
-                    sticky: true,
-                    className: 'park-tooltip'
-                }});
-            }}
-        }});
-
-        // 2. Render Breadcrumb Trails if an animal is selected
-        if (trailCoords && trailCoords.length > 1) {{
-            var latLngs = trailCoords.map(function(t) {{ return [t.latitude, t.longitude]; }});
-            var trailLine = L.polyline(latLngs, {{
-                color: '#00E5FF',
-                weight: 4,
-                opacity: 0.9,
-                dashArray: '6, 6'
-            }}).addTo(map);
-            trailLine.bindTooltip('Wildlife Movement Trajectory', {{ sticky: true }});
-        }}
-
-        // 3. Render Wildlife Collar Markers with Health & Immobility Status
-        animals.forEach(function(animal) {{
-            var isAlert = animal.isBreaching || animal.status === 'Alert';
-            var isLowBattery = animal.collarBattery < 20 || animal.status === 'Low Battery';
-            var isImmobile = animal.status === 'IMMOBILE';
-
-            var markerClass = isAlert ? 'alert-marker' : (isLowBattery || isImmobile ? 'warning-marker' : 'pulse-marker');
-
-            var customIcon = L.divIcon({{
-                className: 'custom-pin',
-                html: '<div class=""' + markerClass + '""></div>',
-                iconSize: [16, 16],
-                iconAnchor: [8, 8]
-            }});
-
-            var marker = L.marker([animal.latitude, animal.longitude], {{ icon: customIcon }}).addTo(map);
-            var statusColor = isAlert ? '#FF5252' : (isLowBattery ? '#FF9800' : '#4CAF50');
-            var statusText = isAlert ? 'GEOFENCE BREACH ALERT' : (isLowBattery ? 'LOW BATTERY WARNING' : 'Normal Patrol');
-
-            var popupContent = '<div class=""popup-title"">' + animal.name + ' (' + animal.species + ')</div>' +
-                               '<div class=""popup-desc"">' +
-                               '<b>Collar:</b> ' + animal.collarId + '<br>' +
-                               '<b>Park:</b> ' + animal.parkName + '<br>' +
-                               '<b>Sex:</b> ' + animal.sex + '<br>' +
-                               '<b>Battery:</b> ' + animal.collarBattery + '%<br>' +
-                               '<b>Status:</b> <span style=""color:' + statusColor + ';font-weight:bold;"">' + statusText + '</span>' +
-                               '</div>';
-            marker.bindPopup(popupContent);
-        }});
-
-        // 4. Render Ranger Patrol Units on the GIS Map
-        patrols.forEach(function(patrol) {{
-            var isDispatched = patrol.status === 'DISPATCHED';
-            var patrolIcon = L.divIcon({{
-                className: 'custom-patrol-pin',
-                html: '<div class=""' + (isDispatched ? 'patrol-dispatched-marker' : 'patrol-marker') + '""></div>',
-                iconSize: [18, 18],
-                iconAnchor: [9, 9]
-            }});
-
-            var pMarker = L.marker([patrol.latitude, patrol.longitude], {{ icon: patrolIcon }}).addTo(map);
-            var pPopup = '<div class=""popup-title"" style=""color:#00E5FF;"">' + patrol.name + '</div>' +
-                         '<div class=""popup-desc"">' +
-                         '<b>Call Sign:</b> ' + patrol.callSign + '<br>' +
-                         '<b>Type:</b> ' + patrol.unitType + '<br>' +
-                         '<b>Sector:</b> ' + patrol.sector + '<br>' +
-                         '<b>Status:</b> <span style=""color:' + (isDispatched ? '#FFD700' : '#00E5FF') + ';font-weight:bold;"">' + patrol.status + '</span>' +
-                         '</div>';
-            pMarker.bindPopup(pPopup);
-        }});
-
-        // 5. Render Vector Dispatch Routes for Active Patrol Dispatches
-        incidents.forEach(function(inc) {{
-            if (inc.isDispatched && patrols && patrols.length > 0) {{
-                var assigned = patrols.find(function(p) {{ return p.status === 'DISPATCHED'; }}) || patrols[0];
-                if (assigned) {{
-                    L.polyline([[assigned.latitude, assigned.longitude], [inc.latitude, inc.longitude]], {{
-                        color: '#FF9800',
-                        weight: 3,
-                        dashArray: '8, 8',
-                        opacity: 0.95
-                    }}).addTo(map);
-                }}
-            }}
-        }});
-    </script>
-</body>
-</html>";
+        MapHtml = OpsMapHtmlBuilder.Build(
+            centerLat,
+            centerLng,
+            zoomLevel,
+            FilteredAnimals.ToList(),
+            Geofences.ToList(),
+            PatrolUnits.ToList(),
+            ActiveIncidents.ToList(),
+            SelectedTrail ?? new List<TelemetryTrailDto>());
     }
 }

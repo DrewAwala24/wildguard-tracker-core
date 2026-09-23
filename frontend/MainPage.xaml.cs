@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using frontend.Converters;
 using frontend.Models;
 using frontend.Services;
@@ -12,6 +13,7 @@ public partial class MainPage : ContentPage
     private readonly AnimalImageConverter _imageConverter = new();
     private AnimalDto? _currentDetailAnimal;
     private bool _isPanelOpen;
+    private bool _opsMapReady;
 
     // Primary DI Constructor
     public MainPage(MainViewModel viewModel)
@@ -23,6 +25,7 @@ public partial class MainPage : ContentPage
         // Wire the SelectAnimalDetailCommand so card taps open the detail panel
         _viewModel.SelectAnimalDetailCommand = new Command<AnimalDto>(async animal =>
             await OpenDetailPanelAsync(animal));
+        _viewModel.InjectLiveMapScript = InjectLiveMapScriptAsync;
     }
 
     // Safe fallback constructor for XAML inflator, previewer, or parameterless Shell resolution
@@ -36,13 +39,43 @@ public partial class MainPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        _viewModel.InjectLiveMapScript = InjectLiveMapScriptAsync;
 
-        if (BindingContext is MainViewModel vm)
+        if (_viewModel.MasterAnimals.Count == 0 && _viewModel.LoadDataCommand.CanExecute(null))
         {
-            if (vm.LoadDataCommand.CanExecute(null))
-            {
-                vm.LoadDataCommand.Execute(null);
-            }
+            _viewModel.LoadDataCommand.Execute(null);
+        }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+    }
+
+    private void OnOpsMapNavigated(object? sender, WebNavigatedEventArgs e)
+    {
+        _opsMapReady = e.Result == WebNavigationResult.Success;
+    }
+
+    private async Task InjectLiveMapScriptAsync(string script)
+    {
+        if (!_opsMapReady || string.IsNullOrWhiteSpace(script) || OpsMapWebView.Handler == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await OpsMapWebView.EvaluateJavaScriptAsync(script);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainPage] Live map script injection failed: {ex.Message}");
+        }
+
+        if (_currentDetailAnimal != null)
+        {
+            DetailCoordinates.Text = $"{_currentDetailAnimal.Latitude:F5}°N, {_currentDetailAnimal.Longitude:F5}°E";
         }
     }
 
