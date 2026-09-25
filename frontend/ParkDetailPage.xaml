@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:frontend.Models"
+             xmlns:vm="clr-namespace:frontend.ViewModels"
+             x:Class="frontend.ParkDetailPage"
+             x:DataType="vm:ParkDetailViewModel"
+             BackgroundColor="#0D1609"
+             NavigationPage.HasNavigationBar="False"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Top Navigation Bar -->
+        <Border Grid.Row="0"
+                BackgroundColor="#16230F"
+                Stroke="#3B5323"
+                StrokeThickness="1"
+                Padding="20,12">
+            <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
+                <!-- Back Button -->
+                <Button Grid.Column="0"
+                        Text="← Back to National Command"
+                        Command="{Binding GoBackCommand}"
+                        BackgroundColor="#263A16"
+                        TextColor="#FFD700"
+                        FontFamily="MontserratBold"
+                        FontSize="13"
+                        CornerRadius="8"
+                        Padding="16,8"
+                        BorderColor="#FFD700"
+                        BorderWidth="1" />
+
+                <!-- Sector Title Header -->
+                <StackLayout Grid.Column="1" Orientation="Vertical" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label Text="KENYA WILDLIFE SERVICE • SECTOR COMMAND DOSSIER"
+                           TextColor="#A0C888"
+                           FontFamily="MontserratBold"
+                           FontSize="11"
+                           HorizontalTextAlignment="Center"
+                           CharacterSpacing="1.2"/>
+                    <Label Text="{Binding Profile.ParkName}"
+                           TextColor="#FFFFFF"
+                           FontFamily="MontserratBold"
+                           FontSize="20"
+                           HorizontalTextAlignment="Center"/>
+                </StackLayout>
+
+                <!-- Refresh Sector Action -->
+                <Button Grid.Column="2"
+                        Text="↻ Refresh Sector"
+                        Command="{Binding RefreshSectorCommand}"
+                        BackgroundColor="#263A16"
+                        TextColor="#FFFFFF"
+                        FontFamily="MontserratBold"
+                        FontSize="12"
+                        CornerRadius="8"
+                        Padding="14,8"
+                        BorderColor="#3B5323"
+                        BorderWidth="1"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Scroll Area -->
+        <ScrollView Grid.Row="1" Padding="20,16">
+            <Grid ColumnDefinitions="1.2*, 1*" ColumnSpacing="20" RowDefinitions="Auto, Auto, Auto" RowSpacing="20">
+
+                <!-- 1. Top Full-Width Hero Profile Banner -->
+                <Border Grid.Row="0" Grid.ColumnSpan="2"
+                        BackgroundColor="#1A2912"
+                        Stroke="#FFD700"
+                        StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto" RowSpacing="12">
+                        
+                        <!-- Top Row: Badge + Threats + Area -->
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                            <Border Grid.Column="0" BackgroundColor="#2D441E" Stroke="#7CFF6B" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="10,4">
+                                <Label Text="{Binding Profile.Code}" TextColor="#7CFF6B" FontFamily="MontserratBold" FontSize="12" />
+                            </Border>
+
+                            <Label Grid.Column="1"
+                                   Text="{Binding Profile.County}"
+                                   TextColor="#E0EBD4"
+                                   FontFamily="MontserratRegular"
+                                   FontSize="14"
+                                   VerticalOptions="Center"/>
+
+                            <!-- Threat Level Badge -->
+                            <Border Grid.Column="2"
+                                    BackgroundColor="#241B10"
+                                    Stroke="{Binding ThreatColor}"
+                                    StrokeThickness="1.5"
+                                    StrokeShape="RoundRectangle 6"
+                                    Padding="10,4">
+                                <Label Text="{Binding Profile.ThreatLevel}"
+                                       TextColor="{Binding ThreatColor}"
+                                       FontFamily="MontserratBold"
+                                       FontSize="11" />
+                            </Border>
+
+                            <!-- Established Year -->
+                            <Label Grid.Column="3"
+                                   Text="{Binding Profile.EstablishedYear, StringFormat='Est. {0}'}"
+                                   TextColor="#FFD700"
+                                   FontFamily="MontserratBold"
+                                   FontSize="13"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+
+                        <!-- Description & Biome -->
+                        <StackLayout Grid.Row="1" Spacing="6">
+                            <Label Text="{Binding Profile.Description}"
+                                   TextColor="#FFFFFF"
+                                   FontFamily="MontserratRegular"
+                                   FontSize="13"
+                                   LineHeight="1.35"/>
+                            <Label Text="{Binding Profile.EcosystemType, StringFormat='🌿 Ecosystem: {0}'}"
+                                   TextColor="#A0C888"
+                                   FontFamily="MontserratBold"
+                                   FontSize="12"/>
+                        </StackLayout>
+
+                        <!-- Quick Sector Specs Chips Grid -->
+                        <Grid Grid.Row="2" ColumnDefinitions="*, *, *, *" ColumnSpacing="12">
+                            <!-- Spec 1: Area -->
+                            <Border Grid.Column="0" BackgroundColor="#14200E" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12,8">
+                                <StackLayout Spacing="2">
+                                    <Label Text="TOTAL AREA" TextColor="#8FA879" FontSize="10" FontFamily="MontserratBold"/>
+                                    <Label Text="{Binding Profile.AreaSqKm, StringFormat='{0:N0} km²'}" TextColor="#FFD700" FontSize="15" FontFamily="MontserratBold"/>
+                                </StackLayout>
+                            </Border>
+
+                            <!-- Spec 2: Ranger HQ -->
+                            <Border Grid.Column="1" BackgroundColor="#14200E" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12,8">
+                                <StackLayout Spacing="2">
+                                    <Label Text="COMMAND HQ" TextColor="#8FA879" FontSize="10" FontFamily="MontserratBold"/>
+                                    <Label Text="{Binding Profile.RangerHq}" TextColor="#FFFFFF" FontSize="11" FontFamily="MontserratBold" LineBreakMode="TailTruncation"/>
+                                </StackLayout>
+                            </Border>
+
+                            <!-- Spec 3: Perimeter Fence -->
+                            <Border Grid.Column="2" BackgroundColor="#14200E" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12,8">
+                                <StackLayout Spacing="2">
+                                    <Label Text="PERIMETER SECURITY" TextColor="#8FA879" FontSize="10" FontFamily="MontserratBold"/>
+                                    <Label Text="{Binding Profile.FenceType}" TextColor="#7CFF6B" FontSize="11" FontFamily="MontserratBold" LineBreakMode="TailTruncation"/>
+                                </StackLayout>
+                            </Border>
+
+                            <!-- Spec 4: Live Climate -->
+                            <Border Grid.Column="3" BackgroundColor="#14200E" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12,8">
+                                <StackLayout Spacing="2">
+                                    <Label Text="MICRO-CLIMATE" TextColor="#8FA879" FontSize="10" FontFamily="MontserratBold"/>
+                                    <Label Text="{Binding WeatherDisplay}" TextColor="#FFD700" FontSize="11" FontFamily="MontserratBold" LineBreakMode="TailTruncation"/>
+                                </StackLayout>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- 2. Left Column: Resident Animals Roster + Ecological Landmarks -->
+                <StackLayout Grid.Row="1" Grid.Column="0" Spacing="20">
+                    
+                    <!-- Resident Collared Wildlife Section -->
+                    <Border BackgroundColor="#16230F" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="16">
+                        <StackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0" Text="🦁 RESIDENT COLLARED WILDLIFE" TextColor="#FFD700" FontFamily="MontserratBold" FontSize="14"/>
+                                <Label Grid.Column="1" Text="{Binding ResidentWildlifeCount}" TextColor="#7CFF6B" FontFamily="MontserratBold" FontSize="12"/>
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding ResidentAnimals}" HeightRequest="380">
+                                <CollectionView.EmptyView>
+                                    <StackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8" Padding="30">
+                                        <Label Text="🛰️ No Collared Individuals Currently Assigned" TextColor="#8FA879" FontFamily="MontserratBold" HorizontalTextAlignment="Center"/>
+                                        <Label Text="All general park animals roam freely in this sector." TextColor="#6E845E" FontSize="12" HorizontalTextAlignment="Center"/>
+                                    </StackLayout>
+                                </CollectionView.EmptyView>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:AnimalDto">
+                                        <Border BackgroundColor="#1E3014"
+                                                Stroke="#3B5323"
+                                                StrokeThickness="1"
+                                                StrokeShape="RoundRectangle 8"
+                                                Padding="12,10"
+                                                Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                                
+                                                <!-- Species Badge Icon -->
+                                                <Border Grid.Column="0" BackgroundColor="#2D441E" Stroke="#FFD700" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="6,4">
+                                                    <Label Text="{Binding Species}" TextColor="#FFD700" FontFamily="MontserratBold" FontSize="10"/>
+                                                </Border>
+
+                                                <!-- Animal Name & Collar ID -->
+                                                <StackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding Name}" TextColor="#FFFFFF" FontFamily="MontserratBold" FontSize="13"/>
+                                                    <Label Text="{Binding CollarId, StringFormat='ID: {0}'}" TextColor="#A0C888" FontSize="10"/>
+                                                    <Label Text="{Binding BehavioralStatus}" TextColor="#E0EBD4" FontSize="10" LineBreakMode="TailTruncation"/>
+                                                </StackLayout>
+
+                                                <!-- Speed & Heading -->
+                                                <StackLayout Grid.Column="2" Spacing="2" HorizontalOptions="End">
+                                                    <Label Text="{Binding SpeedKmh, StringFormat='{0:F1} km/h'}" TextColor="#7CFF6B" FontFamily="MontserratBold" FontSize="11" HorizontalTextAlignment="End"/>
+                                                    <Label Text="{Binding HeadingDegrees, StringFormat='🧭 {0:F0}°'}" TextColor="#8FA879" FontSize="10" HorizontalTextAlignment="End"/>
+                                                </StackLayout>
+
+                                                <!-- Battery Telemetry -->
+                                                <Border Grid.Column="3" BackgroundColor="#14200E" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="8,4">
+                                                    <Label Text="{Binding BatteryLevel, StringFormat='🔋 {0:F0}%'}" TextColor="#FFD700" FontFamily="MontserratBold" FontSize="11"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </StackLayout>
+                    </Border>
+
+                    <!-- Ecological Landmarks & Water Resources -->
+                    <Border BackgroundColor="#16230F" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="16">
+                        <StackLayout Spacing="10">
+                            <Label Text="💧 CRITICAL WATERHOLES, SPRINGS &amp; DAMS" TextColor="#FFD700" FontFamily="MontserratBold" FontSize="14"/>
+                            <Label Text="{Binding Profile.KeyWaterholes}" TextColor="#FFFFFF" FontFamily="MontserratRegular" FontSize="12" LineHeight="1.4"/>
+                            
+                            <BoxView HeightRequest="1" Color="#3B5323" Margin="0,4"/>
+
+                            <Label Text="🐾 TARGET CONSERVATION SPECIES" TextColor="#FFD700" FontFamily="MontserratBold" FontSize="14"/>
+                            <Label Text="{Binding Profile.KeySpecies}" TextColor="#7CFF6B" FontFamily="MontserratRegular" FontSize="12" LineHeight="1.4"/>
+                        </StackLayout>
+                    </Border>
+                </StackLayout>
+
+                <!-- 3. Right Column: Dedicated Sector GIS Map & Patrol Deployments -->
+                <StackLayout Grid.Row="1" Grid.Column="1" Spacing="20">
+                    
+                    <!-- Focused Sector GIS Map -->
+                    <Border BackgroundColor="#16230F" Stroke="#FFD700" StrokeThickness="1.5" StrokeShape="RoundRectangle 12" Padding="2" HeightRequest="320">
+                        <WebView x:Name="SectorMapView" Source="{Binding HtmlMapContent, Converter={x:Null}}" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                    </Border>
+
+                    <!-- Active Patrol Units Assigned -->
+                    <Border BackgroundColor="#16230F" Stroke="#3B5323" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="16">
+                        <StackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0" Text="🛡️ ACTIVE PATROL UNITS &amp; ASSETS" TextColor="#FFD700" FontFamily="MontserratBold" FontSize="14"/>
+                                <Label Grid.Column="1" Text="{Binding ActivePatrolsCount}" TextColor="#00E5FF" FontFamily="MontserratBold" FontSize="12"/>
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding AssignedPatrols}" HeightRequest="240">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PatrolUnitDto">
+                                        <Border BackgroundColor="#1E3014" Stroke="#00E5FF" StrokeThickness="1" StrokeShape="RoundRectangle 8" Padding="12,10" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                                
+                                                <Border Grid.Column="0" BackgroundColor="#0D242B" Stroke="#00E5FF" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="6,4">
+                                                    <Label Text="{Binding UnitType}" TextColor="#00E5FF" FontFamily="MontserratBold" FontSize="10"/>
+                                                </Border>
+
+                                                <StackLayout Grid.Column="1" Spacing="2">
+                                                    <Label Text="{Binding Name}" TextColor="#FFFFFF" FontFamily="MontserratBold" FontSize="12"/>
+                                                    <Label Text="{Binding CallSign, StringFormat='CALLSIGN: {0}'}" TextColor="#8FA879" FontSize="10"/>
+                                                    <Label Text="{Binding Status, StringFormat='Status: {0}'}" TextColor="#7CFF6B" FontSize="10"/>
+                                                </StackLayout>
+
+                                                <Button Grid.Column="2"
+                                                        Text="Dispatch"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ParkDetailViewModel}}, Path=DispatchSectorPatrolCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        BackgroundColor="#263A16"
+                                                        TextColor="#FFD700"
+                                                        FontFamily="MontserratBold"
+                                                        FontSize="11"
+                                                        Padding="12,6"
+                                                        BorderColor="#FFD700"
+                                                        BorderWidth="1"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </StackLayout>
+                    </Border>
+                </StackLayout>
+            </Grid>
+        </ScrollView>
+    </Grid>
+</ContentPage>

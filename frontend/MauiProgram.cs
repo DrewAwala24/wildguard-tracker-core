@@ -28,6 +28,8 @@ namespace frontend
             builder.Services.AddSingleton<ApiService>();
             builder.Services.AddSingleton<MainViewModel>();
             builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<ParkDetailViewModel>();
+            builder.Services.AddTransient<ParkDetailPage>();
 
             return builder.Build();
         }

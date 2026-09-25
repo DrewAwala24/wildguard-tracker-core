@@ -331,6 +331,8 @@ public class MainViewModel : BindableObject
 
     public HtmlWebViewSource MapHtmlSource => _mapHtmlSource;
 
+    public ICommand OpenParkDetailCommand { get; }
+
     public MainViewModel(ApiService apiService)
     {
         _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
@@ -338,6 +340,7 @@ public class MainViewModel : BindableObject
         LoadDataCommand = new Command(async () => await LoadDataAsync(), () => !IsRefreshing);
         SelectParkCommand = new Command<string>(park => SelectedPark = park);
         SelectSpeciesCommand = new Command<string>(species => SelectedSpecies = species);
+        OpenParkDetailCommand = new Command<string>(async park => await OpenParkDetailPageAsync(park));
         DispatchPatrolCommand = new Command<IncidentAlertDto>(async alert => await DispatchPatrolAsync(alert));
         BroadcastSmsCommand = new Command<IncidentAlertDto>(async alert => await BroadcastCommunitySmsAsync(alert));
         OpenResolveModalCommand = new Command<IncidentAlertDto>(OpenResolveModal);
@@ -377,6 +380,36 @@ public class MainViewModel : BindableObject
         });
 
         MainThread.BeginInvokeOnMainThread(StartLiveMovementSimulation);
+    }
+
+    public async Task OpenParkDetailPageAsync(string? parkName)
+    {
+        if (string.IsNullOrWhiteSpace(parkName) || parkName.Equals("All Kenya", StringComparison.OrdinalIgnoreCase))
+        {
+            parkName = !string.IsNullOrWhiteSpace(SelectedPark) && !SelectedPark.Equals("All Kenya", StringComparison.OrdinalIgnoreCase)
+                ? SelectedPark
+                : "Amboseli National Park";
+        }
+
+        try
+        {
+            var detailVm = new ParkDetailViewModel(_apiService);
+            var detailPage = new ParkDetailPage(detailVm);
+            await detailPage.LoadParkAsync(parkName, MasterAnimals, PatrolUnits);
+
+            if (Application.Current?.Windows.FirstOrDefault()?.Page is NavigationPage navPage)
+            {
+                await navPage.PushAsync(detailPage);
+            }
+            else if (Shell.Current != null)
+            {
+                await Shell.Current.Navigation.PushAsync(detailPage);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainViewModel] Failed to open ParkDetailPage: {ex.Message}");
+        }
     }
 
     public async Task LoadDataAsync()

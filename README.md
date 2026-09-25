@@ -67,8 +67,17 @@ The simulation engine replaces random drift with ecologically accurate movement 
 ### 4. 🌤️ Park Micro-Climate & Weather Strip
 - Horizontally scrollable live weather strip with micro-climate indicators for active sectors (Amboseli, Tsavo East/West, Maasai Mara, Nairobi NP, Ol Pejeta).
 - Displays temperature (°C), current conditions (Clear, Scattered Clouds, Afternoon Storms), relative humidity (%), and wind speed (km/h).
+- Tapping any park card opens the dedicated **Park Sector Dossier**.
 
-### 5. 📡 Collar Fleet Health & 4-Column Operations KPI Row
+### 5. 🏞️ Dedicated Park Sector Profiles & Ecosystem Dossier
+- Full-screen tactical park view accessible by tapping any park in the weather strip or the **"View Sector Dossier"** action:
+  - **Park Operational Profile:** Total area (km²), county, established year, command HQ, boundary fence security classification, threat level badge, and micro-climate status.
+  - **Resident Wildlife Roster:** Filtered list of all collared animals roaming specifically in that park with real-time speed, battery telemetry, and IUCN badges.
+  - **Stationed Patrol Units:** Active mobile patrol cruisers and airwing aircraft deployed to that sector with one-click rapid dispatch.
+  - **Critical Ecological Resources:** Key waterholes, dams, swamps, and target conservation species.
+  - **Focused Sector GIS Map:** High-resolution tactical map zoomed directly onto the selected park's geofences.
+
+### 6. 📡 Collar Fleet Health & 4-Column Operations KPI Row
 - Real-time 4-column KPI overview:
   - **Active Wildlife:** Total collared individuals online.
   - **Patrol Units:** Field ranger & airwing deployment count.
@@ -76,20 +85,20 @@ The simulation engine replaces random drift with ecologically accurate movement 
   - **Telemetry Fixes:** Rolling count of real-time GPS samples received.
 - **Collar Fleet Health bar:** Instant visual summary of fleet battery levels and transmission health.
 
-### 6. 📜 Real-Time Operations Activity Feed
+### 7. 📜 Real-Time Operations Activity Feed
 - Live chronological stream of field events (GPS fixes, geofence boundary alerts, patrol dispatches).
 - Color-coded badges and timestamped entries for auditability and incident post-mortem analysis.
 
-### 7. ⚠️ Human-Wildlife Conflict (HWC) Early Warning System
+### 8. ⚠️ Human-Wildlife Conflict (HWC) Early Warning System
 - Real-time spatial point-in-polygon evaluation detecting when collared wildlife breaches protected park perimeters.
 - Prominent **Active Incident Alert Banner** with urgency indicators.
 - **"Dispatch Patrol" Action:** Instantly issues a rapid-response patrol order and renders a patrol vector polyline on the GIS map.
 
-### 8. 🏷️ Sector & Species Quick-Filter Strip
+### 9. 🏷️ Sector & Species Quick-Filter Strip
 - Quick filter chips for all major parks and species groups.
 - Synchronously isolates wildlife cards, filters the telemetry log feed, and zooms the GIS map onto the selected sector.
 
-### 9. 📋 Field Collar Deployment & Wildlife Registry
+### 10. 📋 Field Collar Deployment & Wildlife Registry
 - Integrated **"+ Add Collar"** modal enabling rangers to register new collars with name, species, collar ID, sector, and sex.
 - Saves to PostgreSQL via `POST /api/animals` and updates the UI in real time.
 

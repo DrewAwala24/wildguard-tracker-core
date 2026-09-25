@@ -404,12 +404,28 @@
                                        FontFamily="MontserratBold"
                                        TextColor="#7CFF6B"/>
                             </VerticalStackLayout>
-                            <Label Grid.Column="1" 
-                                   Text="{Binding SelectedPark}" 
-                                   FontSize="12" 
-                                   FontFamily="MontserratBold" 
-                                   TextColor="{StaticResource KwsAccent}" 
-                                   VerticalOptions="Center"/>
+                            <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                <Label Text="{Binding SelectedPark}" 
+                                       FontSize="12" 
+                                       FontFamily="MontserratBold" 
+                                       TextColor="{StaticResource KwsAccent}" 
+                                       VerticalOptions="Center"/>
+                                <Border BackgroundColor="#2D441E"
+                                        StrokeShape="RoundRectangle 6"
+                                        Stroke="#7CFF6B"
+                                        StrokeThickness="1"
+                                        Padding="8,4"
+                                        VerticalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenParkDetailCommand}" CommandParameter="{Binding SelectedPark}"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="🏞️ View Sector Dossier ↗"
+                                           FontSize="10"
+                                           FontFamily="MontserratBold"
+                                           TextColor="#7CFF6B"
+                                           VerticalOptions="Center"/>
+                                </Border>
+                            </HorizontalStackLayout>
                         </Grid>
 
                         <!-- Live Tactical Simulation Control Bar -->
@@ -788,6 +804,10 @@
                                                 StrokeShape="RoundRectangle 12"
                                                 Stroke="#2E4418"
                                                 StrokeThickness="1">
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:MainViewModel}}, Path=OpenParkDetailCommand}"
+                                                                      CommandParameter="{Binding ParkName}"/>
+                                            </Border.GestureRecognizers>
                                             <VerticalStackLayout Spacing="4">
                                                 <Grid ColumnDefinitions="Auto, *">
                                                     <Label Grid.Column="0" Text="{Binding Emoji}" FontSize="22" VerticalOptions="Center"/>
