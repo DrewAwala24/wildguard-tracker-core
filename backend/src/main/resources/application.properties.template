@@ -1,0 +1,45 @@
+# ============================================================
+#  WildGuard Tracker  |  Spring Boot Application Properties
+#  ─────────────────────────────────────────────────────────
+#  SETUP INSTRUCTIONS:
+#    1. Copy this file:
+#         cp application.properties.template application.properties
+#    2. Fill in YOUR local database credentials below.
+#    3. The real application.properties is .gitignored and
+#       will NEVER be committed to version control.
+#  ─────────────────────────────────────────────────────────
+#  On Render / Production:
+#    Set the following as Environment Variables in the Render
+#    dashboard — the ${VAR:fallback} syntax reads from env first.
+# ============================================================
+
+spring.application.name=wildguard-tracker
+
+# ─── Database (Render PostgreSQL or local) ─────────────────
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kws_tracker_db}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:postgres}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:YOUR_LOCAL_PASSWORD_HERE}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# ─── Connection Pool (HikariCP) ────────────────────────────
+# Render Free tier has strict connection limits on Postgres (max 25 connections)
+spring.datasource.hikari.maximum-pool-size=5
+spring.datasource.hikari.minimum-idle=1
+spring.datasource.hikari.connection-timeout=20000
+spring.datasource.hikari.idle-timeout=300000
+
+# ─── JPA / Hibernate ───────────────────────────────────────
+# "update" safely creates missing columns/tables without dropping existing data.
+# Switch to "validate" once the schema is stable in production.
+spring.jpa.hibernate.ddl-auto=${SPRING_JPA_DDL_AUTO:update}
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=false
+
+# ─── Server ────────────────────────────────────────────────
+# Render passes PORT env var; fallback to 8080 for local dev.
+server.port=${PORT:8080}
+
+# ─── Actuator health endpoint (used by Render health checks) ─
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.show-details=never

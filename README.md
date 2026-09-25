@@ -1,4 +1,4 @@
-# 🐾 WildGuard Tracker - Kenya Wildlife Service (KWS) Operations Command
+# 🐾 WildGuard Tracker — Kenya Wildlife Service Operations Command
 
 [![Platform](https://img.shields.io/badge/Platform-.NET%20MAUI%20%7C%20Windows-512BD4)](https://dotnet.microsoft.com/en-us/apps/maui)
 [![Backend](https://img.shields.io/badge/Backend-Spring%20Boot%203%20%7C%20Java%2021-6DB33F)](https://spring.io/projects/spring-boot)
@@ -10,8 +10,6 @@
 ---
 
 ## 🌍 Monitored Kenyan Ecosystems
-
-The platform is purpose-built and calibrated for genuine Kenyan national parks, reserves, and conservancies:
 
 | Sector / Park | Ecosystem & County | Target Species | Key Operational Mission |
 | :--- | :--- | :--- | :--- |
@@ -26,30 +24,52 @@ The platform is purpose-built and calibrated for genuine Kenyan national parks, 
 ## ⚡ Key Features
 
 ### 1. 🗺️ Interactive GIS Operations Map
-- Embedded responsive Leaflet/WebView2 GIS map (zero external API keys required on Windows).
+- Embedded responsive Leaflet/WebView2 GIS map — **zero external API keys** required.
+- **Multi-layer tile basemaps:** Satellite (Esri/Maxar), OpenStreetMap Streets, OpenTopoMap terrain — switchable via Leaflet layer control.
 - **PostGIS Vector Geofences:**
   - **Green polygons:** Protected National Parks & Conservancies.
-  - **Amber/Dashed polygons:** Community buffer corridors (Kimana, Kitengela).
+  - **Amber/dashed polygons:** Community buffer corridors (Kimana, Kitengela).
   - **Red polygons:** High-conflict farmland boundaries.
-- **Pulsing Collar Markers:** Animated GPS collar pins color-coded by alert status.
-- **Inspect Popups:** Tap any marker to view animal name, species, collar ID, sector, battery level, and real-time status.
+- **Nairobi NP Electric Fence overlay:** Dashed gold polyline explicitly marking the northern perimeter separating the wildlife sanctuary from Nairobi city.
+- **Ecological landmark pins:** Key waterholes, dams, and river crossings (Hippo Pools, Nagolomon Dam, Galana Rapids, Aruba Dam, etc.).
+- **Pulsing collar markers:** Animated GPS collar pins color-coded by alert status (gold = active, red/pulsing = alert, orange = low battery/immobile).
+- **Inspect popups:** Tap any marker to view species, collar ID, real-time speed, compass heading, behavioral activity, and fence proximity.
+- **Live trail polylines:** Rolling 25-point breadcrumb GPS trail rendered per collar as animals move.
+- **Smooth glide animation:** Collar markers animate with ease-in-out interpolation between GPS fixes.
 
-### 2. ⚠️ Human-Wildlife Conflict (HWC) Early Warning System
-- Real-time spatial point-in-polygon evaluation detecting when collared wildlife breaches protected park perimeters into adjacent agricultural or community land.
-- Prominent **Active Incident Alert Banner** with audible/visual urgency indicators.
-- **"Dispatch Patrol" Action:** Instantly issues a rapid-response patrol order to the nearest KWS field unit.
+### 2. 🦁 Realistic Sanctuary-Bound Wildlife Simulation
+The simulation engine replaces random drift with ecologically accurate movement constrained **entirely within park boundaries**:
 
-### 3. 🏷️ Sector & Species Quick-Filter Strip
-- Quick filter chips: `[All Kenya]`, `[Amboseli NP]`, `[Tsavo East NP]`, `[Maasai Mara]`, `[Nairobi NP]`, `[Ol Pejeta]`.
-- Synchronously isolates monitored wildlife cards, filters the telemetry log feed, and smoothly zooms and centers the GIS Map directly onto the selected sector.
+- **Waypoint circuit navigation:** Each animal follows a species-appropriate circuit of real ecological waypoints (waterholes, dams, river crossings, seasonal grazing areas). Animals automatically advance to the next waypoint on arrival.
+- **Polygon containment enforcement:** Every proposed movement step is validated against an accurate park polygon. Animals that approach a boundary are steered back toward the nearest waypoint inside the sanctuary — they **never** escape into the city or surrounding areas.
+- **Nairobi NP northern fence hard limit:** A dedicated latitude guard (`< -1.3430°`) and heading-repulsion algorithm actively pushes animals southward away from the electric fence line and into the Mbagathi River basin and Athi plains.
+- **Species-specific behavior:**
+  - 🦁 **Lions** — rest 15% of the time (`💤 Resting in Savannah Shade`), patrol at ~4.2 km/h.
+  - 🐘 **Elephants** — family corridor foraging at ~3.2 km/h.
+  - 🦏 **Rhinos** — slow deliberate browser at ~2.4 km/h.
+  - 🐆 **Cheetahs** — fastest animal; open plains scanning at ~7.5 km/h.
+  - 🦒 **Zebras/Wildebeest/Buffalo** — herd grazing at ~3 km/h.
+- **Heading momentum (smooth steering):** Animals turn gradually (25% angular correction per tick) with gentle natural wander noise — no teleporting or 90° snaps.
+- **Simulation controls:** Play/Pause button and 1×/2×/4× speed multiplier exposed in the XAML toolbar.
+- **Live fence proximity display:** Nairobi NP animals report exact distance to the northern electric fence (`⚡ Near Northern Fence (230m from fence)` or `🛡️ Safe in Sanctuary (2.1 km from City fence)`).
 
-### 4. 📡 Field Collar Deployment & Wildlife Registry
-- Integrated **"+ Add Collar"** modal dialog enabling field rangers and biologists to register new collars directly from the operations dashboard.
-- Captures Animal Name, Species, Collar Device ID / IMEI, Sector, and Sex, saving to PostgreSQL via `POST /api/animals` and updating the UI in real time.
+### 3. ⚠️ Human-Wildlife Conflict (HWC) Early Warning System
+- Real-time spatial point-in-polygon evaluation detecting when collared wildlife breaches protected park perimeters.
+- Prominent **Active Incident Alert Banner** with urgency indicators.
+- **"Dispatch Patrol" Action:** Instantly issues a rapid-response patrol order and renders a patrol vector polyline on the GIS map.
 
-### 5. 📊 Live Metrics & Telemetry Feed
-- Real-time counts of actively tracked wildlife and satellite GPS fixes captured (100% computed from live data, with zero fake placeholders).
-- Scrollable telemetry feed displaying timestamped coordinates (`Lat: {0:F4}°`, `Lng: {0:F4}°`) and collar identifiers.
+### 4. 🏷️ Sector & Species Quick-Filter Strip
+- Quick filter chips for all major parks and species groups.
+- Synchronously isolates wildlife cards, filters the telemetry log feed, and zooms the GIS map onto the selected sector.
+
+### 5. 📡 Field Collar Deployment & Wildlife Registry
+- Integrated **"+ Add Collar"** modal enabling rangers to register new collars with name, species, collar ID, sector, and sex.
+- Saves to PostgreSQL via `POST /api/animals` and updates the UI in real time.
+
+### 6. 📊 Live Metrics & Telemetry Feed
+- Real-time counts of actively tracked wildlife and GPS fixes recorded.
+- Scrollable telemetry feed with timestamped coordinates and collar identifiers.
+- Telemetry samples auto-recorded per simulation tick (up to 80 entries, filtered by current park/species view).
 
 ---
 
@@ -59,7 +79,7 @@ The platform is purpose-built and calibrated for genuine Kenyan national parks, 
 graph TD
     subgraph Frontend [C# / .NET MAUI Windows Client]
         UI[MainPage.xaml - Dashboard UI]
-        VM[MainViewModel.cs - MVVM Logic]
+        VM[MainViewModel.cs - MVVM Logic + Simulation Engine]
         API[ApiService.cs - HTTP Client]
         MAP[Leaflet / WebView2 GIS Map]
         UI --> VM
@@ -67,7 +87,7 @@ graph TD
         VM --> MAP
     end
 
-    subgraph Backend [Java Spring Boot REST API ]
+    subgraph Backend [Java Spring Boot REST API]
         AC[AnimalController]
         TC[TelemetryController]
         GC[GeofenceController]
@@ -95,122 +115,139 @@ graph TD
 
 - **Frontend:**
   - C# 13, **.NET 10 MAUI** targeting Windows (`net10.0-windows10.0.19041.0`).
-  - MVVM Architecture with Dependency Injection (`Microsoft.Extensions.DependencyInjection`).
-  - Hardware-accelerated `Border` controls with glassmorphism and custom KWS branding palette (`#556B2F`, `#3E4E1C`, `#FFD700`).
+  - MVVM Architecture with Dependency Injection.
+  - Hardware-accelerated `Border` controls with glassmorphism and KWS branding palette (`#556B2F`, `#FFD700`).
   - Typography: **Montserrat** (`MontserratBold`, `MontserratRegular`).
 - **Backend:**
   - **Java 21**, **Spring Boot 3.4.x**.
   - **Spring Data JPA** with **Hibernate Spatial**.
-  - **JTS Topology Suite** (`org.locationtech.jts`) for native PostGIS geometry processing (`Point`, `Polygon`, `ST_Intersects`).
-  - Jackson JTS integration via `org.n52.jackson.datatype.jts.JtsModule`.
-  - Spring Security (CSRF disabled for stateless REST endpoints, CORS enabled).
+  - **JTS Topology Suite** for PostGIS geometry processing (`Point`, `Polygon`, `ST_Intersects`).
+  - Spring Security (CSRF disabled for stateless REST, CORS enabled).
 - **Database:**
   - **PostgreSQL 15+** with **PostGIS** extension (`SRID: 4326` WGS 84).
 
 ---
 
-## 📁 Repository Directory Structure
+## 📁 Repository Structure
 
 ```text
 KWS/
+├── .gitignore                          # Excludes secrets & build artifacts
 ├── README.md                           # Project Documentation
 ├── backend/                            # Spring Boot Java Backend
-│   ├── build.gradle                    # Gradle Build Configuration
-│   ├── gradlew / gradlew.bat           # Gradle Wrappers
+│   ├── build.gradle
+│   ├── gradlew / gradlew.bat
 │   └── src/main/
 │       ├── java/com/kws/backend/backend/
-│       │   ├── BackendApplication.java # Main Application Entry Point
+│       │   ├── BackendApplication.java
 │       │   ├── config/
-│       │   │   ├── DataInitializer.java# PostGIS Kenya Parks & Wildlife Seeder
-│       │   │   ├── SecurityConfig.java # Spring Security Configuration
-│       │   │   └── SpatialConfig.java  # Jackson JTS GeoJSON Module Configuration
+│       │   │   ├── DataInitializer.java     # PostGIS Kenya Parks & Wildlife Seeder
+│       │   │   ├── SecurityConfig.java
+│       │   │   └── SpatialConfig.java
 │       │   ├── controller/
 │       │   │   ├── AnimalController.java    # GET/POST /api/animals
 │       │   │   ├── GeofenceController.java  # GET/POST /api/geofences
 │       │   │   └── TelemetryController.java # GET/POST /api/telemetry
-│       │   ├── dto/                    # Data Transfer Objects
-│       │   ├── model/                  # JPA Entities (Animal, GeofenceZone, TelemetryLocation)
-│       │   ├── repository/             # Spring Data JPA Repositories with PostGIS queries
-│       │   └── service/                # Business & Spatial Logic
+│       │   ├── dto/
+│       │   ├── model/
+│       │   ├── repository/
+│       │   └── service/
 │       └── resources/
-│           └── application.properties  # Database & Hibernate Configuration
+│           ├── application.properties           # LOCAL ONLY — gitignored (contains credentials)
+│           └── application.properties.template  # Safe template — copy & fill in credentials
 └── frontend/                           # .NET MAUI Windows Frontend
-    ├── frontend.csproj                 # Project File (.NET 10 MAUI)
-    ├── MauiProgram.cs                  # Dependency Injection & Font Registration
-    ├── App.xaml / App.xaml.cs          # Global Styles & KWS Palette
-    ├── AppShell.xaml                   # Shell Navigation Structure
-    ├── MainPage.xaml / MainPage.xaml.cs# Main Spatial Command Dashboard
-    ├── models/                         # C# DTOs (AnimalDto, TelemetryLocation, GeofenceDto, IncidentAlertDto)
+    ├── frontend.csproj
+    ├── MauiProgram.cs
+    ├── App.xaml / App.xaml.cs
+    ├── AppShell.xaml
+    ├── MainPage.xaml / MainPage.xaml.cs
+    ├── models/                         # C# DTOs
     ├── Services/
-    │   └── ApiService.cs               # Resilient REST API Client with Kenya fallback datasets
+    │   ├── ApiService.cs               # REST client with Kenya fallback wildlife dataset
+    │   └── OpsMapHtmlBuilder.cs        # Leaflet HTML map generator
     ├── ViewModels/
-    │   └── MainViewModel.cs            # Operations State, Filtering, Alerts, Map Generation
+    │   └── MainViewModel.cs            # Operations state, simulation engine, filtering, alerts
     └── Resources/
-        ├── Fonts/                      # Montserrat Font Family TTF Assets
-        └── Images/                     # KWS Emblem (`kws_logo.jpg`)
+        ├── Fonts/                      # Montserrat TTF assets
+        └── Images/
 ```
+
+---
+
+## 🔒 Security & Configuration
+
+> **Never commit `application.properties` with real credentials.**
+
+The real `application.properties` is excluded by `.gitignore`. A safe template is provided at:
+
+```
+backend/src/main/resources/application.properties.template
+```
+
+### Local Setup
+1. Copy the template:
+   ```powershell
+   Copy-Item backend\src\main\resources\application.properties.template `
+              backend\src\main\resources\application.properties
+   ```
+2. Edit `application.properties` and replace `YOUR_LOCAL_PASSWORD_HERE` with your local PostgreSQL password.
+
+### Production (Render)
+Set the following environment variables in the Render dashboard:
+| Variable | Description |
+| :--- | :--- |
+| `SPRING_DATASOURCE_URL` | Full PostgreSQL connection URL |
+| `SPRING_DATASOURCE_USERNAME` | Database username |
+| `SPRING_DATASOURCE_PASSWORD` | Database password |
+| `PORT` | Assigned automatically by Render |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-- **.NET 10 SDK** with the MAUI workload installed:
+### Prerequisites
+- **.NET 10 SDK** with the MAUI workload:
   ```powershell
   dotnet workload install maui
   ```
 - **Java Development Kit (JDK) 21+**
 - **PostgreSQL 15+** with **PostGIS** extension
 
----
+### Database Setup
+```sql
+CREATE DATABASE kws_tracker_db;
+\c kws_tracker_db;
+CREATE EXTENSION postgis;
+```
 
-### 2. Database Setup
-1. Open your PostgreSQL terminal (psql) or pgAdmin:
-   ```sql
-   CREATE DATABASE kws_tracker_db;
-   \c kws_tracker_db;
-   CREATE EXTENSION postgis;
-   ```
-2. Verify credentials in `backend/src/main/resources/application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/kws_tracker_db
-   spring.datasource.username=postgres
-   spring.datasource.password=YourPasswordHere
-   spring.jpa.hibernate.ddl-auto=update
-   ```
-
----
-
-### 3. Running the Spring Boot Backend
-Open a terminal in the `backend/` directory:
+### Running the Spring Boot Backend
 ```powershell
 cd backend
 .\gradlew.bat bootRun
 ```
-*The `DataInitializer` will automatically seed the PostGIS park boundaries (Amboseli, Tsavo, Maasai Mara, Nairobi NP, and Kimana buffer) and collared animals on first boot.*
+*`DataInitializer` automatically seeds PostGIS park boundaries (Amboseli, Tsavo, Maasai Mara, Nairobi NP, Kimana buffer) and collared animals on first boot.*
 
----
-
-### 4. Running the .NET MAUI Frontend
-Open a terminal in the `frontend/` directory:
+### Running the .NET MAUI Frontend
 ```powershell
 cd frontend
 dotnet build -t:Run -f net10.0-windows10.0.19041.0
 ```
-*Alternatively, open `frontend/frontend.slnx` in **Visual Studio 2022/2026** or **Visual Studio Code**, select **Windows Machine**, and press **F5**.*
+*Or open `frontend/frontend.slnx` in Visual Studio 2022/2026 → select **Windows Machine** → **F5**.*
+
+> **Offline mode:** If the Spring Boot backend is not running, the frontend falls back to a built-in Kenyan wildlife dataset and the simulation engine runs fully client-side.
 
 ---
 
 ## 📡 REST API Reference
 
-| Method | Endpoint | Description | Sample Request / Payload |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/animals` | Retrieve all registered wildlife | Returns `List<AnimalDto>` |
-| `POST` | `/api/animals` | Register a new collared animal | `{"name":"Mara Pride","species":"Lion","collarId":"KWS-MAR-LIO09"}` |
-| `GET` | `/api/telemetry` | Retrieve all telemetry fixes | Returns `List<TelemetryLocation>` |
-| `POST` | `/api/telemetry` | Ingest new GPS collar ping | `{"collarId":"KWS-AMB-ELE01","latitude":-2.6531,"longitude":37.2625}` |
-| `GET` | `/api/geofences` | Retrieve PostGIS park boundaries | Returns `List<GeofenceZone>` with GeoJSON polygon geometry |
-| `POST` | `/api/geofences` | Create a new geofence boundary | PostGIS Polygon geometry payload |
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/animals` | Retrieve all registered collared wildlife |
+| `POST` | `/api/animals` | Register a new collared animal |
+| `GET` | `/api/telemetry` | Retrieve all GPS telemetry fixes |
+| `POST` | `/api/telemetry` | Ingest a new GPS collar ping |
+| `GET` | `/api/geofences` | Retrieve PostGIS park boundary polygons |
+| `POST` | `/api/geofences` | Create a new geofence boundary |
 
 ---
 

@@ -269,6 +269,78 @@
                                     </Border.GestureRecognizers>
                                     <Label Text="Ol Pejeta" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
                                 </Border>
+
+                                <!-- Tsavo West NP Chip -->
+                                <Border Padding="12,6" 
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="#33FFFFFF"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{StaticResource KwsCardBackground}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectParkCommand}" CommandParameter="Tsavo West NP"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Tsavo West NP" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                </Border>
+
+                                <!-- Lake Nakuru Chip -->
+                                <Border Padding="12,6" 
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="#33FFFFFF"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{StaticResource KwsCardBackground}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectParkCommand}" CommandParameter="Lake Nakuru"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Lake Nakuru" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                </Border>
+
+                                <!-- Samburu Chip -->
+                                <Border Padding="12,6" 
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="#33FFFFFF"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{StaticResource KwsCardBackground}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectParkCommand}" CommandParameter="Samburu"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Samburu" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                </Border>
+
+                                <!-- Aberdare Chip -->
+                                <Border Padding="12,6" 
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="#33FFFFFF"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{StaticResource KwsCardBackground}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectParkCommand}" CommandParameter="Aberdare"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Aberdare" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                </Border>
+
+                                <!-- Mount Kenya Chip -->
+                                <Border Padding="12,6" 
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="#33FFFFFF"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{StaticResource KwsCardBackground}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectParkCommand}" CommandParameter="Mount Kenya"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Mount Kenya" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                </Border>
+
+                                <!-- Lewa Chip -->
+                                <Border Padding="12,6" 
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="#33FFFFFF"
+                                        StrokeThickness="1"
+                                        BackgroundColor="{StaticResource KwsCardBackground}">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectParkCommand}" CommandParameter="Lewa"/>
+                                    </Border.GestureRecognizers>
+                                    <Label Text="Lewa" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                </Border>
                             </HorizontalStackLayout>
                         </ScrollView>
                     </VerticalStackLayout>
@@ -338,6 +410,71 @@
                                    VerticalOptions="Center"/>
                         </Grid>
 
+                        <!-- Live Tactical Simulation Control Bar -->
+                        <Border BackgroundColor="#1E2B12"
+                                StrokeShape="RoundRectangle 8"
+                                Stroke="#337CFF6B"
+                                StrokeThickness="1"
+                                Padding="10,6">
+                            <Grid ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
+                                <!-- Play/Pause Toggle -->
+                                <Border Grid.Column="0"
+                                        BackgroundColor="#2D4A18"
+                                        StrokeShape="RoundRectangle 6"
+                                        Stroke="{StaticResource KwsAccent}"
+                                        StrokeThickness="1"
+                                        Padding="10,4"
+                                        VerticalOptions="Center">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ToggleSimulationPlaybackCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="{Binding SimulationPlaybackButtonText}"
+                                           FontSize="11"
+                                           FontFamily="MontserratBold"
+                                           TextColor="{StaticResource KwsTextWhite}"
+                                           VerticalOptions="Center"/>
+                                </Border>
+
+                                <!-- Simulation Speed Multipliers -->
+                                <HorizontalStackLayout Grid.Column="1" Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="Speed:" FontSize="10" Opacity="0.7" VerticalOptions="Center" Margin="0,0,2,0"/>
+                                    <Border BackgroundColor="#15FFFFFF" StrokeShape="RoundRectangle 4" Stroke="#25FFFFFF" Padding="6,2">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetSimulationSpeedCommand}" CommandParameter="1"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="1x" FontSize="10" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                    </Border>
+                                    <Border BackgroundColor="#15FFFFFF" StrokeShape="RoundRectangle 4" Stroke="#25FFFFFF" Padding="6,2">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetSimulationSpeedCommand}" CommandParameter="2"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="2x" FontSize="10" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                    </Border>
+                                    <Border BackgroundColor="#15FFFFFF" StrokeShape="RoundRectangle 4" Stroke="#25FFFFFF" Padding="6,2">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SetSimulationSpeedCommand}" CommandParameter="5"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="5x" FontSize="10" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
+                                    </Border>
+                                </HorizontalStackLayout>
+
+                                <!-- Sanctuary Status Badge -->
+                                <Border Grid.Column="2"
+                                        BackgroundColor="#14220A"
+                                        StrokeShape="RoundRectangle 6"
+                                        Stroke="#4CAF50"
+                                        StrokeThickness="1"
+                                        Padding="8,4"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding SimulationModeBadge}"
+                                           FontSize="10"
+                                           FontFamily="MontserratBold"
+                                           TextColor="#7CFF6B"
+                                           VerticalOptions="Center"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
                         <Border BackgroundColor="{StaticResource KwsCardBackground}"
                                 StrokeShape="RoundRectangle 12"
                                 Stroke="#26FFFFFF"
@@ -352,7 +489,7 @@
 
                                 <!-- Map Legend Bar -->
                                 <Border BackgroundColor="#22000000" Padding="12,8">
-                                    <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
+                                    <HorizontalStackLayout Spacing="14" HorizontalOptions="Center">
                                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                             <Ellipse WidthRequest="8" HeightRequest="8" Fill="#4CAF50" VerticalOptions="Center"/>
                                             <Label Text="National Park" FontSize="10" VerticalOptions="Center"/>
@@ -363,7 +500,7 @@
                                         </HorizontalStackLayout>
                                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                             <Ellipse WidthRequest="8" HeightRequest="8" Fill="#FFD700" VerticalOptions="Center"/>
-                                            <Label Text="Collar Ping" FontSize="10" VerticalOptions="Center"/>
+                                            <Label Text="Collar Fix" FontSize="10" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
                                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                             <Ellipse WidthRequest="8" HeightRequest="8" Fill="#FF5252" VerticalOptions="Center"/>
@@ -374,8 +511,8 @@
                                             <Label Text="Patrol 4x4" FontSize="10" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
                                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                            <BoxView WidthRequest="12" HeightRequest="2" Color="#00E5FF" VerticalOptions="Center"/>
-                                            <Label Text="GPS Trail" FontSize="10" VerticalOptions="Center"/>
+                                            <BoxView WidthRequest="10" HeightRequest="3" Color="#FFD700" VerticalOptions="Center"/>
+                                            <Label Text="City Fence" FontSize="10" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
                                     </HorizontalStackLayout>
                                 </Border>
@@ -924,6 +1061,30 @@
                         </Border>
 
                     </Grid>
+
+                    <!-- Live Movement Telemetry (Speed, Heading, Behavior, City Fence status) -->
+                    <Border Margin="18,12,18,0"
+                            BackgroundColor="#152B12"
+                            StrokeShape="RoundRectangle 10"
+                            Stroke="#337CFF6B"
+                            Padding="12,10">
+                        <VerticalStackLayout Spacing="6">
+                            <Grid ColumnDefinitions="*, *">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="VELOCITY &amp; HEADING" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                    <Label x:Name="DetailSpeedHeading" FontSize="12" FontFamily="MontserratBold" TextColor="#7CFF6B"/>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="SANCTUARY STATUS" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                    <Label x:Name="DetailFenceStatus" FontSize="11" FontFamily="MontserratBold" TextColor="#FFD700"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="CURRENT BEHAVIOR" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailBehavior" FontSize="11" TextColor="White"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
 
                     <!-- GPS Coordinates -->
                     <Border Margin="18,12,18,0"

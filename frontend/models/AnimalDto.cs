@@ -105,6 +105,44 @@ namespace frontend.Models
             set => SetField(ref _isBreaching, value);
         }
 
+        private double _speedKmh = 0.0;
+        [JsonPropertyName("speedKmh")]
+        public double SpeedKmh
+        {
+            get => _speedKmh;
+            set
+            {
+                if (SetField(ref _speedKmh, value))
+                    OnPropertyChanged(nameof(SpeedDisplay));
+            }
+        }
+
+        public string SpeedDisplay => $"{SpeedKmh:F1} km/h";
+
+        private string _headingCompass = "N 0°";
+        [JsonPropertyName("headingCompass")]
+        public string HeadingCompass
+        {
+            get => _headingCompass;
+            set => SetField(ref _headingCompass, value);
+        }
+
+        private string _behaviorState = "🌿 Foraging";
+        [JsonPropertyName("behaviorState")]
+        public string BehaviorState
+        {
+            get => _behaviorState;
+            set => SetField(ref _behaviorState, value);
+        }
+
+        private string _fenceDistance = "Safe in Sanctuary";
+        [JsonPropertyName("fenceDistance")]
+        public string FenceDistance
+        {
+            get => _fenceDistance;
+            set => SetField(ref _fenceDistance, value);
+        }
+
         public string CoordinateDisplay => $"{Latitude:F4}°, {Longitude:F4}°";
 
         private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

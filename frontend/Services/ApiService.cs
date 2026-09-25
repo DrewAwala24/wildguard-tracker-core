@@ -108,6 +108,10 @@ public class ApiService
                 var zones = await response.Content.ReadFromJsonAsync<List<GeofenceDto>>(JsonOptions);
                 if (zones != null && zones.Count > 0)
                 {
+                    foreach (var z in zones)
+                    {
+                        z.NormalizeCoordinates();
+                    }
                     return zones;
                 }
             }
@@ -445,7 +449,7 @@ public class ApiService
                     new[] { -2.68, 37.35 }
                 }
             },
-            // Nairobi National Park
+            // Nairobi National Park (Accurate perimeter strictly south of Lang'ata / Wilson Airport fence)
             new()
             {
                 Id = 3,
@@ -456,29 +460,39 @@ public class ApiService
                 ColorHex = "#4CAF50",
                 Coordinates = new List<double[]>
                 {
-                    new[] { -1.32, 36.80 },
-                    new[] { -1.32, 36.92 },
-                    new[] { -1.42, 36.92 },
-                    new[] { -1.42, 36.80 },
-                    new[] { -1.32, 36.80 }
+                    new[] { -1.3500, 36.7760 }, // KWS Headquarters / Main Gate
+                    new[] { -1.3465, 36.7950 }, // Langata Forest Sanctuary
+                    new[] { -1.3420, 36.8200 }, // Southern Bypass Fence Line
+                    new[] { -1.3425, 36.8450 }, // South of Wilson Airport Perimeter
+                    new[] { -1.3440, 36.8720 }, // South of South C / Nairobi West
+                    new[] { -1.3520, 36.8980 }, // Mombasa Road / Inland Container Depot
+                    new[] { -1.3620, 36.9250 }, // Syokimau / SGR Boundary
+                    new[] { -1.3900, 36.9500 }, // Athi River Basin (East)
+                    new[] { -1.4250, 36.9380 }, // Athi River Confluence
+                    new[] { -1.4380, 36.8900 }, // Mbagathi River / Kitengela Migration Border
+                    new[] { -1.4300, 36.8500 }, // Southern Riverine Savanna
+                    new[] { -1.4150, 36.8150 }, // Silole Sanctuary / Gorge
+                    new[] { -1.3950, 36.7800 }, // Kingfisher Gorge
+                    new[] { -1.3700, 36.7650 }, // Western Park Boundary
+                    new[] { -1.3500, 36.7760 }  // Close perimeter at KWS HQ
                 }
             },
-            // Kitengela Dispersal Area (South of Nairobi NP)
+            // Kitengela Dispersal Area (South of Nairobi NP across Mbagathi River)
             new()
             {
                 Id = 4,
                 ZoneName = "Kitengela Dispersal Zone",
                 ZoneType = "COMMUNITY_BUFFER",
-                CenterLatitude = -1.45,
-                CenterLongitude = 36.88,
+                CenterLatitude = -1.455,
+                CenterLongitude = 36.885,
                 ColorHex = "#FF5722",
                 Coordinates = new List<double[]>
                 {
-                    new[] { -1.42, 36.82 },
-                    new[] { -1.42, 36.95 },
-                    new[] { -1.50, 36.95 },
-                    new[] { -1.50, 36.82 },
-                    new[] { -1.42, 36.82 }
+                    new[] { -1.4380, 36.8900 },
+                    new[] { -1.4250, 36.9380 },
+                    new[] { -1.5000, 36.9500 },
+                    new[] { -1.5050, 36.8500 },
+                    new[] { -1.4380, 36.8900 }
                 }
             },
             // Maasai Mara National Reserve
@@ -522,17 +536,143 @@ public class ApiService
             {
                 Id = 7,
                 ZoneName = "Ol Pejeta Conservancy",
-                ZoneType = "PARK",
+                ZoneType = "CONSERVANCY",
                 CenterLatitude = 0.0389,
                 CenterLongitude = 36.9639,
-                ColorHex = "#4CAF50",
+                ColorHex = "#00E5FF",
                 Coordinates = new List<double[]>
                 {
                     new[] { 0.00, 36.88 },
-                    new[] { 0.00, 37.03 },
-                    new[] { 0.08, 37.03 },
-                    new[] { 0.08, 36.88 },
+                    new[] { 0.00, 37.05 },
+                    new[] { 0.10, 37.05 },
+                    new[] { 0.10, 36.88 },
                     new[] { 0.00, 36.88 }
+                }
+            },
+            // Tsavo West National Park
+            new()
+            {
+                Id = 8,
+                ZoneName = "Tsavo West National Park",
+                ZoneType = "PARK",
+                CenterLatitude = -3.10,
+                CenterLongitude = 38.05,
+                ColorHex = "#4CAF50",
+                Coordinates = new List<double[]>
+                {
+                    new[] { -2.75, 37.80 },
+                    new[] { -2.75, 38.35 },
+                    new[] { -3.60, 38.35 },
+                    new[] { -3.60, 37.80 },
+                    new[] { -2.75, 37.80 }
+                }
+            },
+            // Mara North Conservancy
+            new()
+            {
+                Id = 9,
+                ZoneName = "Mara North Conservancy",
+                ZoneType = "CONSERVANCY",
+                CenterLatitude = -1.28,
+                CenterLongitude = 35.15,
+                ColorHex = "#00E5FF",
+                Coordinates = new List<double[]>
+                {
+                    new[] { -1.18, 35.05 },
+                    new[] { -1.18, 35.25 },
+                    new[] { -1.38, 35.25 },
+                    new[] { -1.38, 35.05 },
+                    new[] { -1.18, 35.05 }
+                }
+            },
+            // Lewa Wildlife Conservancy
+            new()
+            {
+                Id = 10,
+                ZoneName = "Lewa Wildlife Conservancy",
+                ZoneType = "CONSERVANCY",
+                CenterLatitude = 0.25,
+                CenterLongitude = 37.45,
+                ColorHex = "#00E5FF",
+                Coordinates = new List<double[]>
+                {
+                    new[] { 0.18, 37.38 },
+                    new[] { 0.18, 37.55 },
+                    new[] { 0.32, 37.55 },
+                    new[] { 0.32, 37.38 },
+                    new[] { 0.18, 37.38 }
+                }
+            },
+            // Lake Nakuru National Park
+            new()
+            {
+                Id = 11,
+                ZoneName = "Lake Nakuru National Park",
+                ZoneType = "PARK",
+                CenterLatitude = -0.37,
+                CenterLongitude = 36.08,
+                ColorHex = "#4CAF50",
+                Coordinates = new List<double[]>
+                {
+                    new[] { -0.32, 36.04 },
+                    new[] { -0.32, 36.14 },
+                    new[] { -0.45, 36.14 },
+                    new[] { -0.45, 36.04 },
+                    new[] { -0.32, 36.04 }
+                }
+            },
+            // Samburu National Reserve
+            new()
+            {
+                Id = 12,
+                ZoneName = "Samburu National Reserve",
+                ZoneType = "PARK",
+                CenterLatitude = 0.62,
+                CenterLongitude = 37.53,
+                ColorHex = "#4CAF50",
+                Coordinates = new List<double[]>
+                {
+                    new[] { 0.55, 37.45 },
+                    new[] { 0.55, 37.65 },
+                    new[] { 0.70, 37.65 },
+                    new[] { 0.70, 37.45 },
+                    new[] { 0.55, 37.45 }
+                }
+            },
+            // Aberdare National Park
+            new()
+            {
+                Id = 13,
+                ZoneName = "Aberdare National Park",
+                ZoneType = "PARK",
+                CenterLatitude = -0.55,
+                CenterLongitude = 36.72,
+                ColorHex = "#4CAF50",
+                Coordinates = new List<double[]>
+                {
+                    new[] { -0.35, 36.65 },
+                    new[] { -0.35, 36.85 },
+                    new[] { -0.75, 36.85 },
+                    new[] { -0.75, 36.65 },
+                    new[] { -0.35, 36.65 }
+                }
+            },
+            // Mount Kenya National Park
+            new()
+            {
+                Id = 14,
+                ZoneName = "Mount Kenya National Park",
+                ZoneType = "PARK",
+                CenterLatitude = -0.15,
+                CenterLongitude = 37.32,
+                ColorHex = "#4CAF50",
+                Coordinates = new List<double[]>
+                {
+                    new[] { -0.05, 37.20 },
+                    new[] { -0.05, 37.45 },
+                    new[] { -0.28, 37.45 },
+                    new[] { -0.28, 37.20 },
+                    new[] { -0.05, 37.20 }
                 }
             }
         };

@@ -1,0 +1,41 @@
+# ============================================================
+#  WildGuard Tracker — .gitignore
+#  Excludes secrets, build artifacts, IDE files, and OS noise
+# ============================================================
+
+# ─── Sensitive Configuration ────────────────────────────────
+# application.properties contains local DB credentials.
+# Copy application.properties.template → application.properties
+# and fill in your credentials locally. NEVER commit the real file.
+backend/src/main/resources/application.properties
+
+# ─── Gradle Build Artifacts ─────────────────────────────────
+backend/.gradle/
+backend/build/
+backend/out/
+!backend/gradlew
+!backend/gradlew.bat
+
+# ─── .NET / MAUI Build Artifacts ────────────────────────────
+frontend/bin/
+frontend/obj/
+frontend/.vs/
+*.user
+
+# ─── Visual Studio / Rider IDE ──────────────────────────────
+.vs/
+.idea/
+*.suo
+*.swp
+*.swo
+
+# ─── OS Generated Files ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Environment & Local Secrets ────────────────────────────
+.env
+.env.local
+*.secret
+secrets.properties

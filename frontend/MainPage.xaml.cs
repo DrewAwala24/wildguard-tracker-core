@@ -75,7 +75,10 @@ public partial class MainPage : ContentPage
 
         if (_currentDetailAnimal != null)
         {
-            DetailCoordinates.Text = $"{_currentDetailAnimal.Latitude:F5}°N, {_currentDetailAnimal.Longitude:F5}°E";
+            DetailCoordinates.Text  = $"{_currentDetailAnimal.Latitude:F5}°N, {_currentDetailAnimal.Longitude:F5}°E";
+            DetailSpeedHeading.Text = $"{_currentDetailAnimal.SpeedDisplay} • {_currentDetailAnimal.HeadingCompass}";
+            DetailBehavior.Text     = _currentDetailAnimal.BehaviorState;
+            DetailFenceStatus.Text  = _currentDetailAnimal.FenceDistance;
         }
     }
 
@@ -95,6 +98,9 @@ public partial class MainPage : ContentPage
         DetailPark.Text            = animal.ParkName;
         DetailBattery.Text         = $"🔋 {animal.CollarBattery}%";
         DetailCoordinates.Text     = $"{animal.Latitude:F5}°N, {animal.Longitude:F5}°E";
+        DetailSpeedHeading.Text    = $"{animal.SpeedDisplay} • {animal.HeadingCompass}";
+        DetailBehavior.Text        = animal.BehaviorState;
+        DetailFenceStatus.Text     = animal.FenceDistance;
 
         // Status colour
         DetailStatus.Text          = animal.IsBreaching ? "⚠ BREACHING" : animal.Status;
