@@ -23,9 +23,11 @@
 
 ## ⚡ Key Features
 
-### 1. 🗺️ Interactive GIS Operations Map
+### 1. 🗺️ Interactive GIS Operations Map & Tactical Overlays
 - Embedded responsive Leaflet/WebView2 GIS map — **zero external API keys** required.
-- **Multi-layer tile basemaps:** Satellite (Esri/Maxar), OpenStreetMap Streets, OpenTopoMap terrain — switchable via Leaflet layer control.
+- **Kenya Sovereign Border:** Distinct high-visibility gold and emerald border marking the sovereign boundary of Kenya with surrounding regional labels.
+- **Multi-layer tile basemaps:** Satellite (Esri/Maxar), OpenStreetMap Streets, OpenTopoMap terrain, and Night Ops tactical mode — switchable via Leaflet layer control.
+- **Poaching Risk Heatmaps & AI Predictive Corridors:** Real-time spatial risk clusters and simulated animal migration corridors for proactive patrol deployment.
 - **PostGIS Vector Geofences:**
   - **Green polygons:** Protected National Parks & Conservancies.
   - **Amber/dashed polygons:** Community buffer corridors (Kimana, Kitengela).
@@ -53,23 +55,43 @@ The simulation engine replaces random drift with ecologically accurate movement 
 - **Simulation controls:** Play/Pause button and 1×/2×/4× speed multiplier exposed in the XAML toolbar.
 - **Live fence proximity display:** Nairobi NP animals report exact distance to the northern electric fence (`⚡ Near Northern Fence (230m from fence)` or `🛡️ Safe in Sanctuary (2.1 km from City fence)`).
 
-### 3. ⚠️ Human-Wildlife Conflict (HWC) Early Warning System
+### 3. 🛡️ Conservation Status & IUCN Red List Panel
+- Species breakdown cards displaying the official IUCN conservation status:
+  - **CR** (Critically Endangered) — Eastern Black Rhino
+  - **EN** (Endangered) — African Savanna Elephant
+  - **VU** (Vulnerable) — Lion, Cheetah, Giraffe
+  - **NT** (Near Threatened) — Plains Zebra
+  - **LC** (Least Concern) — African Buffalo
+- Shows tracked count per species, target parks, and live average battery telemetry.
+
+### 4. 🌤️ Park Micro-Climate & Weather Strip
+- Horizontally scrollable live weather strip with micro-climate indicators for active sectors (Amboseli, Tsavo East/West, Maasai Mara, Nairobi NP, Ol Pejeta).
+- Displays temperature (°C), current conditions (Clear, Scattered Clouds, Afternoon Storms), relative humidity (%), and wind speed (km/h).
+
+### 5. 📡 Collar Fleet Health & 4-Column Operations KPI Row
+- Real-time 4-column KPI overview:
+  - **Active Wildlife:** Total collared individuals online.
+  - **Patrol Units:** Field ranger & airwing deployment count.
+  - **Active Alerts:** Immediate geofence & battery breach incidents.
+  - **Telemetry Fixes:** Rolling count of real-time GPS samples received.
+- **Collar Fleet Health bar:** Instant visual summary of fleet battery levels and transmission health.
+
+### 6. 📜 Real-Time Operations Activity Feed
+- Live chronological stream of field events (GPS fixes, geofence boundary alerts, patrol dispatches).
+- Color-coded badges and timestamped entries for auditability and incident post-mortem analysis.
+
+### 7. ⚠️ Human-Wildlife Conflict (HWC) Early Warning System
 - Real-time spatial point-in-polygon evaluation detecting when collared wildlife breaches protected park perimeters.
 - Prominent **Active Incident Alert Banner** with urgency indicators.
 - **"Dispatch Patrol" Action:** Instantly issues a rapid-response patrol order and renders a patrol vector polyline on the GIS map.
 
-### 4. 🏷️ Sector & Species Quick-Filter Strip
+### 8. 🏷️ Sector & Species Quick-Filter Strip
 - Quick filter chips for all major parks and species groups.
 - Synchronously isolates wildlife cards, filters the telemetry log feed, and zooms the GIS map onto the selected sector.
 
-### 5. 📡 Field Collar Deployment & Wildlife Registry
+### 9. 📋 Field Collar Deployment & Wildlife Registry
 - Integrated **"+ Add Collar"** modal enabling rangers to register new collars with name, species, collar ID, sector, and sex.
 - Saves to PostgreSQL via `POST /api/animals` and updates the UI in real time.
-
-### 6. 📊 Live Metrics & Telemetry Feed
-- Real-time counts of actively tracked wildlife and GPS fixes recorded.
-- Scrollable telemetry feed with timestamped coordinates and collar identifiers.
-- Telemetry samples auto-recorded per simulation tick (up to 80 entries, filtered by current park/species view).
 
 ---
 

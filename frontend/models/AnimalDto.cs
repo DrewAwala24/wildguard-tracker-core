@@ -143,6 +143,38 @@ namespace frontend.Models
             set => SetField(ref _fenceDistance, value);
         }
 
+        private string _predictedCorridor = "Scanning forward corridor...";
+        [JsonPropertyName("predictedCorridor")]
+        public string PredictedCorridor
+        {
+            get => _predictedCorridor;
+            set => SetField(ref _predictedCorridor, value);
+        }
+
+        private string _solarVoltageDisplay = "☀️ 14.1V (Solar Float)";
+        [JsonPropertyName("solarVoltageDisplay")]
+        public string SolarVoltageDisplay
+        {
+            get => _solarVoltageDisplay;
+            set => SetField(ref _solarVoltageDisplay, value);
+        }
+
+        private string _collarTempDisplay = "🌡️ 27°C (Nominal)";
+        [JsonPropertyName("collarTempDisplay")]
+        public string CollarTempDisplay
+        {
+            get => _collarTempDisplay;
+            set => SetField(ref _collarTempDisplay, value);
+        }
+
+        private string _signalStrength = "🛰️ -82 dBm (Iridium SAT)";
+        [JsonPropertyName("signalStrength")]
+        public string SignalStrength
+        {
+            get => _signalStrength;
+            set => SetField(ref _signalStrength, value);
+        }
+
         public string CoordinateDisplay => $"{Latitude:F4}°, {Longitude:F4}°";
 
         private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

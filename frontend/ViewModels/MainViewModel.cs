@@ -23,6 +23,13 @@ public class MainViewModel : BindableObject
     private string _activeAlertsSummary = string.Empty;
     private bool _isRegistrationModalOpen;
 
+    // Conservation & Analytics
+    private string _conservationSummary = string.Empty;
+    private string _collarHealthSummary = string.Empty;
+    private string _alertsCountDisplay = "0 Active";
+    private string _patrolsCountDisplay = "0 Units";
+    private string _parksCountDisplay = "0 Parks";
+
     // Resolve Modal Bindings
     private bool _isResolveModalOpen;
     private string _resolutionNotes = string.Empty;
@@ -58,6 +65,9 @@ public class MainViewModel : BindableObject
     public ObservableCollection<TelemetryLocation> FilteredTelemetryLogs { get; } = new();
     public ObservableCollection<IncidentAlertDto> ActiveIncidents { get; } = new();
     public ObservableCollection<PatrolUnitDto> PatrolUnits { get; } = new();
+    public ObservableCollection<ConservationSpeciesCard> ConservationCards { get; } = new();
+    public ObservableCollection<ParkWeatherCard> ParkWeatherCards { get; } = new();
+    public ObservableCollection<ActivityLogEntry> ActivityLog { get; } = new();
 
     // Commands
     public ICommand LoadDataCommand { get; }
@@ -74,10 +84,30 @@ public class MainViewModel : BindableObject
     public ICommand SubmitRegistrationCommand { get; }
     public ICommand ToggleSimulationPlaybackCommand { get; }
     public ICommand SetSimulationSpeedCommand { get; }
+    public ICommand ToggleNightOpsModeCommand { get; }
 
     // Set by MainPage code-behind after construction (opens detail panel / JS inject)
     public ICommand? SelectAnimalDetailCommand { get; set; }
     public Func<string, Task>? InjectLiveMapScript { get; set; }
+
+    private bool _isNightOpsMode;
+    public bool IsNightOpsMode
+    {
+        get => _isNightOpsMode;
+        set
+        {
+            if (_isNightOpsMode != value)
+            {
+                _isNightOpsMode = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(NightOpsButtonText));
+                OnPropertyChanged(nameof(NightOpsBadgeText));
+            }
+        }
+    }
+
+    public string NightOpsButtonText => IsNightOpsMode ? "☀️ Day Ops" : "🌙 Night Ops";
+    public string NightOpsBadgeText => IsNightOpsMode ? "🌙 NIGHT RADAR ACTIVE" : "☀️ DAYLIGHT OPS";
 
     private bool _isSimulationPlaying = true;
     public bool IsSimulationPlaying
@@ -254,6 +284,36 @@ public class MainViewModel : BindableObject
         set { if (_liveFeedStatus != value) { _liveFeedStatus = value; OnPropertyChanged(); } }
     }
 
+    public string ConservationSummary
+    {
+        get => _conservationSummary;
+        set { if (_conservationSummary != value) { _conservationSummary = value; OnPropertyChanged(); } }
+    }
+
+    public string CollarHealthSummary
+    {
+        get => _collarHealthSummary;
+        set { if (_collarHealthSummary != value) { _collarHealthSummary = value; OnPropertyChanged(); } }
+    }
+
+    public string AlertsCountDisplay
+    {
+        get => _alertsCountDisplay;
+        set { if (_alertsCountDisplay != value) { _alertsCountDisplay = value; OnPropertyChanged(); } }
+    }
+
+    public string PatrolsCountDisplay
+    {
+        get => _patrolsCountDisplay;
+        set { if (_patrolsCountDisplay != value) { _patrolsCountDisplay = value; OnPropertyChanged(); } }
+    }
+
+    public string ParksCountDisplay
+    {
+        get => _parksCountDisplay;
+        set { if (_parksCountDisplay != value) { _parksCountDisplay = value; OnPropertyChanged(); } }
+    }
+
     public string MapHtml
     {
         get => _mapHtml;
@@ -307,6 +367,15 @@ public class MainViewModel : BindableObject
             }
         });
 
+        ToggleNightOpsModeCommand = new Command(async () =>
+        {
+            IsNightOpsMode = !IsNightOpsMode;
+            if (InjectLiveMapScript != null)
+            {
+                await InjectLiveMapScript($"setTacticalNightOps({(IsNightOpsMode ? "true" : "false")})");
+            }
+        });
+
         MainThread.BeginInvokeOnMainThread(StartLiveMovementSimulation);
     }
 
@@ -351,6 +420,7 @@ public class MainViewModel : BindableObject
                 EvaluateGeofenceBreaches();
                 ApplyFilter();
                 UpdateMapHtml();
+                RefreshAnalytics();
 
                 ActiveAnimalsCount = $"{MasterAnimals.Count} Monitored";
                 TelemetryLogsCount = $"{MasterTelemetry.Count} Recorded";
@@ -410,23 +480,34 @@ public class MainViewModel : BindableObject
     {
         ActiveIncidents.Clear();
 
-        // Check for animals flagged as breaching or positioned near community boundaries
         foreach (var animal in MasterAnimals)
         {
             if (animal.IsBreaching || animal.Status == "Alert")
             {
+                var zone = animal.ParkName.Contains("Amboseli") ? "Kimana Community Dispersal Area" : $"{animal.ParkName} Community Buffer";
                 ActiveIncidents.Add(new IncidentAlertDto
                 {
                     AnimalName = animal.Name,
-                    Species = animal.Species,
-                    CollarId = animal.CollarId,
-                    ParkName = animal.ParkName,
-                    ZoneName = animal.ParkName.Contains("Amboseli") ? "Kimana Community Dispersal Area" : $"{animal.ParkName} Community Buffer",
-                    Severity = "CRITICAL",
-                    Message = $"{animal.Species} '{animal.Name}' ({animal.CollarId}) crossed perimeter into community buffer.",
-                    Latitude = animal.Latitude,
-                    Longitude = animal.Longitude,
-                    Timestamp = DateTime.UtcNow.AddMinutes(-5)
+                    Species    = animal.Species,
+                    CollarId   = animal.CollarId,
+                    ParkName   = animal.ParkName,
+                    ZoneName   = zone,
+                    Severity   = "CRITICAL",
+                    Message    = $"{animal.Species} '{animal.Name}' ({animal.CollarId}) crossed perimeter into community buffer.",
+                    Latitude   = animal.Latitude,
+                    Longitude  = animal.Longitude,
+                    Timestamp  = DateTime.UtcNow.AddMinutes(-5)
+                });
+
+                // Push breach to activity log
+                ActivityLog.Insert(0, new ActivityLogEntry
+                {
+                    Emoji    = "⚠️",
+                    Title    = $"BREACH — {animal.Name}",
+                    Detail   = $"{animal.Species} entered {zone}",
+                    TimeStamp= DateTime.Now.ToString("HH:mm:ss"),
+                    Tag      = "BREACH",
+                    TagColor = "#FF1744"
                 });
             }
         }
@@ -635,6 +716,7 @@ public class MainViewModel : BindableObject
 
     private readonly Dictionary<string, int> _animalWaypointIndices = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, int> _animalRestCounters = new(StringComparer.OrdinalIgnoreCase);
+    private double _airwingAngle = 0.0;
 
     private static readonly (double Lat, double Lng)[] NairobiParkPolygon = new[]
     {
@@ -837,12 +919,19 @@ public class MainViewModel : BindableObject
         }
 
         List<object> positions = new();
+        PatrolUnitDto? airwingUnit = null;
 
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             foreach (var animal in MasterAnimals)
             {
                 ApplyRealisticSimulatedMovement(animal);
+
+                double currentHeading = _movementHeadings.TryGetValue(animal.CollarId, out var h) ? h : 0;
+                double predStep = ResolveStepLength(animal.Species) * 0.45 * 6.0;
+                double predLat = animal.Latitude + Math.Cos(currentHeading) * predStep;
+                double predLng = animal.Longitude + Math.Sin(currentHeading) * predStep / Math.Max(0.1, Math.Cos(animal.Latitude * Math.PI / 180.0));
+
                 positions.Add(new
                 {
                     collarId = animal.CollarId,
@@ -851,8 +940,24 @@ public class MainViewModel : BindableObject
                     speedDisplay = animal.SpeedDisplay,
                     headingCompass = animal.HeadingCompass,
                     behaviorState = animal.BehaviorState,
-                    fenceDistance = animal.FenceDistance
+                    fenceDistance = animal.FenceDistance,
+                    predictedCorridor = animal.PredictedCorridor,
+                    predictedLat = predLat,
+                    predictedLng = predLng,
+                    solarVoltageDisplay = animal.SolarVoltageDisplay,
+                    collarTempDisplay = animal.CollarTempDisplay,
+                    signalStrength = animal.SignalStrength
                 });
+            }
+
+            // Animate KWS Airwing Aerial Surveillance Flight
+            airwingUnit = PatrolUnits.FirstOrDefault(p => p.UnitType == "AIRWING");
+            if (airwingUnit != null)
+            {
+                double airStep = 0.0028 * SimulationSpeedMultiplier;
+                airwingUnit.Latitude += Math.Cos(_airwingAngle) * airStep * 0.7;
+                airwingUnit.Longitude += Math.Sin(_airwingAngle) * airStep;
+                _airwingAngle += 0.06;
             }
 
             RecordLiveTelemetrySample();
@@ -869,6 +974,12 @@ public class MainViewModel : BindableObject
             if (inject != null)
             {
                 await inject(script);
+
+                if (airwingUnit != null)
+                {
+                    var airScript = $"updateAirwingFlight({airwingUnit.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {airwingUnit.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, 115, {airwingUnit.AltitudeFt}, {airwingUnit.SpeedKmh.ToString(System.Globalization.CultureInfo.InvariantCulture)})";
+                    await inject(airScript);
+                }
             }
         });
     }
@@ -1002,6 +1113,101 @@ public class MainViewModel : BindableObject
         animal.HeadingCompass = HeadingToCompass(_movementHeadings[animal.CollarId]);
         animal.BehaviorState = ResolveBehaviorState(animal.Species, targetWp.Name, distToWp);
         animal.FenceDistance = CalculateFenceStatus(animal.Latitude, animal.Longitude, animal.ParkName);
+        int etaMin = Math.Max(4, (int)(distToWp / (Math.Max(0.5, animal.SpeedKmh) / 60.0)));
+        animal.PredictedCorridor = $"Projected toward {targetWp.Name} (ETA ~{etaMin} min)";
+        if (string.Equals(animal.ParkName, "Nairobi NP", StringComparison.OrdinalIgnoreCase) && animal.Latitude > -1.352)
+        {
+            animal.PredictedCorridor = "⚠️ Repelling South from Northern City Fence";
+        }
+    }
+
+    private void RefreshAnalytics()
+    {
+        // --- Conservation Species Cards ---
+        ConservationCards.Clear();
+        var speciesGroups = MasterAnimals
+            .GroupBy(a => a.Species)
+            .OrderBy(g => g.Key);
+
+        foreach (var grp in speciesGroups)
+        {
+            string iucn = ResolveIucnStatus(grp.Key);
+            string iucnColor = ResolveIucnColor(iucn);
+            int avgBattery = (int)grp.Average(a => a.CollarBattery);
+            ConservationCards.Add(new ConservationSpeciesCard
+            {
+                Species = grp.Key,
+                Count = grp.Count(),
+                IucnStatus = iucn,
+                IucnColor = iucnColor,
+                AvgBattery = avgBattery,
+                Parks = string.Join(", ", grp.Select(a => a.ParkName).Distinct().Take(2))
+            });
+        }
+
+        // --- Park Weather Cards (deterministic based on park) ---
+        ParkWeatherCards.Clear();
+        var activeParkNames = MasterAnimals.Select(a => a.ParkName).Distinct().ToList();
+        foreach (var park in activeParkNames)
+        {
+            ParkWeatherCards.Add(BuildParkWeather(park));
+        }
+
+        // --- KPI Counters ---
+        AlertsCountDisplay = $"{ActiveIncidents.Count} Active";
+        PatrolsCountDisplay = $"{PatrolUnits.Count} Units";
+        ParksCountDisplay = $"{activeParkNames.Count} Parks";
+
+        // --- Collar Health Summary ---
+        if (MasterAnimals.Count > 0)
+        {
+            int critical = MasterAnimals.Count(a => a.CollarBattery < 20);
+            int warning  = MasterAnimals.Count(a => a.CollarBattery >= 20 && a.CollarBattery < 50);
+            int healthy  = MasterAnimals.Count(a => a.CollarBattery >= 50);
+            CollarHealthSummary = $"🟢 Healthy: {healthy}   🟡 Warning: {warning}   🔴 Critical: {critical}";
+        }
+    }
+
+    private static string ResolveIucnStatus(string species)
+    {
+        var s = species.ToLowerInvariant();
+        if (s.Contains("black rhino") || s.Contains("eastern black")) return "CR";
+        if (s.Contains("elephant")) return "VU";
+        if (s.Contains("cheetah")) return "VU";
+        if (s.Contains("lion")) return "VU";
+        if (s.Contains("giraffe")) return "VU";
+        if (s.Contains("wild dog") || s.Contains("lycaon")) return "EN";
+        if (s.Contains("pangolin")) return "CR";
+        return "LC";
+    }
+
+    private static string ResolveIucnColor(string iucn) => iucn switch
+    {
+        "CR" => "#FF1744",
+        "EN" => "#FF5722",
+        "VU" => "#FF9800",
+        "NT" => "#FFEB3B",
+        _    => "#4CAF50"
+    };
+
+    private static ParkWeatherCard BuildParkWeather(string park)
+    {
+        // Realistic Kenyan park micro-climates (semi-static data, refreshed on load)
+        return park switch
+        {
+            "Amboseli NP"  => new ParkWeatherCard { Park = park, Emoji = "⛅", TempC = 28, Condition = "Partly Cloudy", Humidity = 55, WindKmh = 14 },
+            "Tsavo East NP"=> new ParkWeatherCard { Park = park, Emoji = "☀️", TempC = 35, Condition = "Hot & Dry",      Humidity = 30, WindKmh = 22 },
+            "Tsavo West NP"=> new ParkWeatherCard { Park = park, Emoji = "🌤", TempC = 30, Condition = "Clear Savannah", Humidity = 45, WindKmh = 11 },
+            "Maasai Mara"  => new ParkWeatherCard { Park = park, Emoji = "🌧", TempC = 22, Condition = "Light Showers",  Humidity = 78, WindKmh = 18 },
+            "Nairobi NP"   => new ParkWeatherCard { Park = park, Emoji = "🌦", TempC = 24, Condition = "Warm & Breezy",  Humidity = 62, WindKmh = 12 },
+            "Ol Pejeta"    => new ParkWeatherCard { Park = park, Emoji = "☀️", TempC = 27, Condition = "Sunny Equatorial",Humidity = 50, WindKmh = 9 },
+            "Samburu"      => new ParkWeatherCard { Park = park, Emoji = "☀️", TempC = 33, Condition = "Arid & Hot",     Humidity = 28, WindKmh = 25 },
+            "Lake Nakuru"  => new ParkWeatherCard { Park = park, Emoji = "⛅", TempC = 21, Condition = "Rift Valley Mist",Humidity = 72, WindKmh = 8 },
+            "Aberdare"     => new ParkWeatherCard { Park = park, Emoji = "🌧", TempC = 16, Condition = "Highland Rain",  Humidity = 88, WindKmh = 15 },
+            "Mount Kenya"  => new ParkWeatherCard { Park = park, Emoji = "❄️", TempC = 9,  Condition = "Alpine Cold",    Humidity = 80, WindKmh = 20 },
+            "Lewa"         => new ParkWeatherCard { Park = park, Emoji = "⛅", TempC = 25, Condition = "Scattered Cloud", Humidity = 55, WindKmh = 10 },
+            _              => new ParkWeatherCard { Park = park, Emoji = "☀️", TempC = 28, Condition = "Savannah Sun",   Humidity = 48, WindKmh = 13 }
+        };
     }
 
     private void RecordLiveTelemetrySample()
@@ -1021,9 +1227,7 @@ public class MainViewModel : BindableObject
         });
 
         while (MasterTelemetry.Count > 80)
-        {
             MasterTelemetry.RemoveAt(MasterTelemetry.Count - 1);
-        }
 
         FilteredTelemetryLogs.Clear();
         var visibleCollarIds = FilteredAnimals.Select(a => a.CollarId).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -1033,13 +1237,26 @@ public class MainViewModel : BindableObject
         {
             FilteredTelemetryLogs.Add(log);
         }
+
+        // Push to activity log (keep newest 40)
+        ActivityLog.Insert(0, new ActivityLogEntry
+        {
+            Emoji    = "📡",
+            Title    = $"{animal.Name} — GPS Fix",
+            Detail   = $"{animal.Species} • {animal.ParkName} • {animal.BehaviorState}",
+            TimeStamp= DateTime.Now.ToString("HH:mm:ss"),
+            Tag      = "TELEMETRY",
+            TagColor = "#00E5FF"
+        });
+        while (ActivityLog.Count > 40)
+            ActivityLog.RemoveAt(ActivityLog.Count - 1);
     }
 
     private void UpdateMapHtml()
     {
-        double centerLat = -1.286389;
-        double centerLng = 36.817223;
-        int zoomLevel = 7;
+        double centerLat = 0.5000;
+        double centerLng = 37.8500;
+        int zoomLevel = 6;
 
         switch (SelectedPark)
         {

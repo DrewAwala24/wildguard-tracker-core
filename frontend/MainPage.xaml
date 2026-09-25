@@ -65,6 +65,18 @@
                                 </HorizontalStackLayout>
                             </Border>
 
+                            <Border BackgroundColor="#1E2816" 
+                                    StrokeShape="RoundRectangle 8" 
+                                    Stroke="{StaticResource KwsAccent}"
+                                    StrokeThickness="1"
+                                    Padding="10,6" 
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleNightOpsModeCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding NightOpsButtonText}" FontSize="11" FontFamily="MontserratBold" TextColor="{StaticResource KwsAccent}" VerticalOptions="Center"/>
+                            </Border>
+
                             <Border BackgroundColor="#26000000" 
                                     StrokeShape="RoundRectangle 8" 
                                     Stroke="#33FFFFFF"
@@ -345,43 +357,33 @@
                         </ScrollView>
                     </VerticalStackLayout>
 
-                    <!-- Live Metrics Row -->
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="12">
-                        <Border Grid.Column="0" 
-                                Padding="14,12" 
-                                BackgroundColor="{StaticResource KwsCardBackground}" 
-                                StrokeShape="RoundRectangle 10" 
-                                Stroke="#22FFFFFF"
-                                StrokeThickness="1">
+                    <!-- Live Metrics Row: 4 KPI tiles -->
+                    <Grid ColumnDefinitions="*, *, *, *" ColumnSpacing="10">
+                        <Border Grid.Column="0" Padding="12,10" BackgroundColor="{StaticResource KwsCardBackground}" StrokeShape="RoundRectangle 10" Stroke="#22FFFFFF" StrokeThickness="1">
                             <VerticalStackLayout Spacing="3">
-                                <Label Text="MONITORED WILDLIFE" 
-                                       FontSize="10" 
-                                       Opacity="0.7" 
-                                       FontFamily="MontserratBold"
-                                       CharacterSpacing="0.5"/>
-                                <Label Text="{Binding ActiveAnimalsCount, FallbackValue='0 Tracked'}" 
-                                       FontSize="16" 
-                                       FontFamily="MontserratBold" 
-                                       TextColor="{StaticResource KwsAccent}"/>
+                                <Label Text="WILDLIFE" FontSize="9" Opacity="0.7" FontFamily="MontserratBold" CharacterSpacing="0.5"/>
+                                <Label Text="{Binding ActiveAnimalsCount, FallbackValue='0 Tracked'}" FontSize="14" FontFamily="MontserratBold" TextColor="{StaticResource KwsAccent}"/>
                             </VerticalStackLayout>
                         </Border>
 
-                        <Border Grid.Column="1" 
-                                Padding="14,12" 
-                                BackgroundColor="{StaticResource KwsCardBackground}" 
-                                StrokeShape="RoundRectangle 10" 
-                                Stroke="#22FFFFFF"
-                                StrokeThickness="1">
+                        <Border Grid.Column="1" Padding="12,10" BackgroundColor="{StaticResource KwsCardBackground}" StrokeShape="RoundRectangle 10" Stroke="#22FFFFFF" StrokeThickness="1">
                             <VerticalStackLayout Spacing="3">
-                                <Label Text="TELEMETRY LOGS" 
-                                       FontSize="10" 
-                                       Opacity="0.7" 
-                                       FontFamily="MontserratBold"
-                                       CharacterSpacing="0.5"/>
-                                <Label Text="{Binding TelemetryLogsCount, FallbackValue='0 Recorded'}" 
-                                       FontSize="16" 
-                                       FontFamily="MontserratBold" 
-                                       TextColor="{StaticResource KwsTextWhite}"/>
+                                <Label Text="PATROLS" FontSize="9" Opacity="0.7" FontFamily="MontserratBold" CharacterSpacing="0.5"/>
+                                <Label Text="{Binding PatrolsCountDisplay, FallbackValue='0 Units'}" FontSize="14" FontFamily="MontserratBold" TextColor="#00E5FF"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border Grid.Column="2" Padding="12,10" BackgroundColor="{StaticResource KwsCardBackground}" StrokeShape="RoundRectangle 10" Stroke="#22FFFFFF" StrokeThickness="1">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="ALERTS" FontSize="9" Opacity="0.7" FontFamily="MontserratBold" CharacterSpacing="0.5"/>
+                                <Label Text="{Binding AlertsCountDisplay, FallbackValue='0 Active'}" FontSize="14" FontFamily="MontserratBold" TextColor="#FF5252"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border Grid.Column="3" Padding="12,10" BackgroundColor="{StaticResource KwsCardBackground}" StrokeShape="RoundRectangle 10" Stroke="#22FFFFFF" StrokeThickness="1">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="TELEMETRY" FontSize="9" Opacity="0.7" FontFamily="MontserratBold" CharacterSpacing="0.5"/>
+                                <Label Text="{Binding TelemetryLogsCount, FallbackValue='0 Recorded'}" FontSize="14" FontFamily="MontserratBold" TextColor="{StaticResource KwsTextWhite}"/>
                             </VerticalStackLayout>
                         </Border>
                     </Grid>
@@ -511,6 +513,18 @@
                                             <Label Text="Patrol 4x4" FontSize="10" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
                                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Label Text="✈️" FontSize="10" VerticalOptions="Center"/>
+                                            <Label Text="Airwing Recon" FontSize="10" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <BoxView WidthRequest="10" HeightRequest="3" Color="#00E5FF" VerticalOptions="Center"/>
+                                            <Label Text="AI Corridor" FontSize="10" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                            <Ellipse WidthRequest="8" HeightRequest="8" Fill="#FF1744" VerticalOptions="Center"/>
+                                            <Label Text="Poaching Risk" FontSize="10" VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                             <BoxView WidthRequest="10" HeightRequest="3" Color="#FFD700" VerticalOptions="Center"/>
                                             <Label Text="City Fence" FontSize="10" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
@@ -615,11 +629,22 @@
                                                        TextColor="#7CFF6B"
                                                        Opacity="0.9"
                                                        LineBreakMode="TailTruncation"/>
+                                                <!-- Dynamic Speed, Heading & Predicted Corridor -->
+                                                <Grid ColumnDefinitions="*, Auto" Margin="0,1">
+                                                    <Label Grid.Column="0" Text="{Binding SpeedDisplay, StringFormat='⚡ {0}'}" FontSize="9" TextColor="#FFD700" FontFamily="MontserratBold"/>
+                                                    <Label Grid.Column="1" Text="{Binding HeadingCompass}" FontSize="9" Opacity="0.75"/>
+                                                </Grid>
+                                                <Label Text="{Binding PredictedCorridor, StringFormat='🔮 {0}'}"
+                                                       FontSize="8"
+                                                       TextColor="#00E5FF"
+                                                       LineBreakMode="TailTruncation"
+                                                       MaxLines="1"/>
                                                 <Label Text="📍 View Profile"
                                                        FontSize="9"
                                                        FontFamily="MontserratBold"
                                                        TextColor="#00E5FF"
-                                                       Opacity="0.85"/>
+                                                       Opacity="0.85"
+                                                       Margin="0,2,0,0"/>
 
                                             </VerticalStackLayout>
                                         </VerticalStackLayout>
@@ -727,6 +752,256 @@
                                                Opacity="0.7" 
                                                HorizontalTextAlignment="Center"/>
                                     </VerticalStackLayout>
+                                </Border>
+                            </CollectionView.EmptyView>
+                        </CollectionView>
+                    </VerticalStackLayout>
+
+                    <!-- ═══════════════════════════════════════════════════
+                         PARK WEATHER STRIP (micro-climate per active park)
+                         ═══════════════════════════════════════════════════ -->
+                    <VerticalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Label Grid.Column="0"
+                                   Text="Park Conditions"
+                                   FontSize="16"
+                                   FontFamily="MontserratBold"
+                                   TextColor="{StaticResource KwsTextWhite}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="Live Field Climate"
+                                   FontSize="11"
+                                   Opacity="0.65"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                            <CollectionView ItemsSource="{Binding ParkWeatherCards}" HeightRequest="105">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10"/>
+                                </CollectionView.ItemsLayout>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border WidthRequest="140"
+                                                Padding="12,10"
+                                                BackgroundColor="#1E2B12"
+                                                StrokeShape="RoundRectangle 12"
+                                                Stroke="#2E4418"
+                                                StrokeThickness="1">
+                                            <VerticalStackLayout Spacing="4">
+                                                <Grid ColumnDefinitions="Auto, *">
+                                                    <Label Grid.Column="0" Text="{Binding Emoji}" FontSize="22" VerticalOptions="Center"/>
+                                                    <VerticalStackLayout Grid.Column="1" Margin="6,0,0,0" Spacing="0" VerticalOptions="Center">
+                                                        <Label Text="{Binding TempDisplay}" FontSize="16" FontFamily="MontserratBold" TextColor="#FFD700"/>
+                                                        <Label Text="{Binding ShortPark}" FontSize="9" Opacity="0.7" LineBreakMode="TailTruncation"/>
+                                                    </VerticalStackLayout>
+                                                </Grid>
+                                                <Label Text="{Binding Condition}" FontSize="10" FontFamily="MontserratBold" TextColor="White" Opacity="0.9" LineBreakMode="TailTruncation"/>
+                                                <HorizontalStackLayout Spacing="8">
+                                                    <Label Text="{Binding HumidityDisplay}" FontSize="9" Opacity="0.75"/>
+                                                    <Label Text="{Binding WindDisplay}" FontSize="9" Opacity="0.75"/>
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </ScrollView>
+                    </VerticalStackLayout>
+
+                    <!-- ═══════════════════════════════════════════════════
+                         CONSERVATION STATUS PANEL (IUCN per species)
+                         ═══════════════════════════════════════════════════ -->
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Label Grid.Column="0"
+                                   Text="Conservation Status"
+                                   FontSize="16"
+                                   FontFamily="MontserratBold"
+                                   TextColor="{StaticResource KwsTextWhite}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="IUCN Red List 2024"
+                                   FontSize="11"
+                                   Opacity="0.65"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+
+                        <CollectionView ItemsSource="{Binding ConservationCards}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,4"
+                                            Padding="14,12"
+                                            BackgroundColor="{StaticResource KwsCardBackground}"
+                                            StrokeShape="RoundRectangle 10"
+                                            Stroke="#20FFFFFF"
+                                            StrokeThickness="1">
+                                        <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="12" VerticalOptions="Center">
+
+                                            <!-- IUCN Status Badge -->
+                                            <Border Grid.Column="0"
+                                                    BackgroundColor="{Binding IucnColor}"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    Stroke="Transparent"
+                                                    Padding="8,4"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding IucnStatus}"
+                                                       FontSize="12"
+                                                       FontFamily="MontserratBold"
+                                                       TextColor="White"
+                                                       HorizontalTextAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- Species Info -->
+                                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                                <Label Text="{Binding Species}"
+                                                       FontSize="13"
+                                                       FontFamily="MontserratBold"
+                                                       TextColor="{StaticResource KwsTextWhite}"
+                                                       LineBreakMode="TailTruncation"/>
+                                                <Label Text="{Binding IucnLabel}"
+                                                       FontSize="10"
+                                                       TextColor="{Binding IucnColor}"
+                                                       Opacity="0.9"/>
+                                                <Label Text="{Binding Parks}"
+                                                       FontSize="9"
+                                                       Opacity="0.6"
+                                                       LineBreakMode="TailTruncation"/>
+                                            </VerticalStackLayout>
+
+                                            <!-- Right: count + battery -->
+                                            <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
+                                                <Border BackgroundColor="#22FFFFFF"
+                                                        StrokeShape="RoundRectangle 6"
+                                                        Stroke="Transparent"
+                                                        Padding="7,3">
+                                                    <Label Text="{Binding CountDisplay}"
+                                                           FontSize="10"
+                                                           FontFamily="MontserratBold"
+                                                           TextColor="{StaticResource KwsAccent}"
+                                                           HorizontalTextAlignment="Center"/>
+                                                </Border>
+                                                <Label Text="{Binding BatteryDisplay}"
+                                                       FontSize="10"
+                                                       Opacity="0.75"
+                                                       HorizontalTextAlignment="Center"/>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                            <CollectionView.EmptyView>
+                                <Label Text="No species data yet — loading…"
+                                       FontSize="12"
+                                       Opacity="0.6"
+                                       HorizontalTextAlignment="Center"
+                                       Margin="0,20"/>
+                            </CollectionView.EmptyView>
+                        </CollectionView>
+                    </VerticalStackLayout>
+
+                    <!-- ═══════════════════════════════════════════════════
+                         COLLAR HEALTH SUMMARY BAR
+                         ═══════════════════════════════════════════════════ -->
+                    <Border Padding="14,12"
+                            BackgroundColor="#1C2E10"
+                            StrokeShape="RoundRectangle 10"
+                            Stroke="#33FFD700"
+                            StrokeThickness="1">
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10">
+                            <Label Grid.Column="0" Text="🔋" FontSize="18" VerticalOptions="Center"/>
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                <Label Text="COLLAR FLEET HEALTH"
+                                       FontSize="9"
+                                       FontFamily="MontserratBold"
+                                       Opacity="0.65"
+                                       CharacterSpacing="0.5"/>
+                                <Label Text="{Binding CollarHealthSummary, FallbackValue='Loading collar health…'}"
+                                       FontSize="12"
+                                       FontFamily="MontserratBold"
+                                       TextColor="#FFD700"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- ═══════════════════════════════════════════════════
+                         LIVE ACTIVITY / EVENT LOG FEED
+                         ═══════════════════════════════════════════════════ -->
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                            <Label Grid.Column="0"
+                                   Text="Live Activity Feed"
+                                   FontSize="16"
+                                   FontFamily="MontserratBold"
+                                   TextColor="{StaticResource KwsTextWhite}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="{Binding ActivityLog.Count, StringFormat='{0} Events'}"
+                                   FontSize="12"
+                                   Opacity="0.75"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+
+                        <CollectionView ItemsSource="{Binding ActivityLog}" HeightRequest="280">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="4, *" Margin="0,3" ColumnSpacing="0">
+                                        <!-- Accent bar on left -->
+                                        <BoxView Grid.Column="0"
+                                                 Color="{Binding TagColor}"
+                                                 WidthRequest="4"
+                                                 VerticalOptions="Fill"
+                                                 CornerRadius="2"/>
+
+                                        <Border Grid.Column="1"
+                                                Padding="12,9"
+                                                BackgroundColor="{StaticResource KwsCardBackground}"
+                                                StrokeShape="RoundRectangle 0,8,8,0"
+                                                Stroke="#18FFFFFF"
+                                                StrokeThickness="1">
+                                            <Grid ColumnDefinitions="Auto, *, Auto" ColumnSpacing="10">
+                                                <Label Grid.Column="0" Text="{Binding Emoji}" FontSize="16" VerticalOptions="Center"/>
+                                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                    <Label Text="{Binding Title}"
+                                                           FontSize="12"
+                                                           FontFamily="MontserratBold"
+                                                           TextColor="{StaticResource KwsTextWhite}"
+                                                           LineBreakMode="TailTruncation"/>
+                                                    <Label Text="{Binding Detail}"
+                                                           FontSize="10"
+                                                           Opacity="0.7"
+                                                           LineBreakMode="TailTruncation"/>
+                                                </VerticalStackLayout>
+                                                <VerticalStackLayout Grid.Column="2" Spacing="3" HorizontalOptions="End" VerticalOptions="Center">
+                                                    <Label Text="{Binding TimeStamp}"
+                                                           FontSize="10"
+                                                           Opacity="0.6"
+                                                           HorizontalTextAlignment="End"/>
+                                                    <Border BackgroundColor="#15FFFFFF"
+                                                            StrokeShape="RoundRectangle 4"
+                                                            Stroke="Transparent"
+                                                            Padding="5,2">
+                                                        <Label Text="{Binding Tag}"
+                                                               FontSize="8"
+                                                               FontFamily="MontserratBold"
+                                                               TextColor="{Binding TagColor}"
+                                                               HorizontalTextAlignment="Center"/>
+                                                    </Border>
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                            <CollectionView.EmptyView>
+                                <Border StrokeShape="RoundRectangle 10"
+                                        Stroke="#1AFFFFFF"
+                                        BackgroundColor="{StaticResource KwsCardBackground}"
+                                        Padding="24">
+                                    <Label Text="Activity log initialising — simulation running…"
+                                           FontSize="12"
+                                           Opacity="0.6"
+                                           HorizontalTextAlignment="Center"/>
                                 </Border>
                             </CollectionView.EmptyView>
                         </CollectionView>
@@ -1082,6 +1357,14 @@
                             <VerticalStackLayout Spacing="2">
                                 <Label Text="CURRENT BEHAVIOR" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
                                 <Label x:Name="DetailBehavior" FontSize="11" TextColor="White"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="AI PREDICTIVE CORRIDOR" FontSize="9" FontFamily="MontserratBold" TextColor="#00E5FF" Opacity="0.9"/>
+                                <Label x:Name="DetailPredictedCorridor" FontSize="11" TextColor="#00E5FF"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="COLLAR HARDWARE &amp; TELEMETRY" FontSize="9" FontFamily="MontserratBold" Opacity="0.6"/>
+                                <Label x:Name="DetailHardwareHealth" FontSize="10" TextColor="#FFD700"/>
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </Border>

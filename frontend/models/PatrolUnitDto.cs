@@ -27,5 +27,11 @@ namespace frontend.Models
 
         [JsonPropertyName("sector")]
         public string Sector { get; set; } = string.Empty;
+
+        [JsonPropertyName("altitudeFt")]
+        public int AltitudeFt { get; set; } = 0;
+
+        [JsonPropertyName("speedKmh")]
+        public double SpeedKmh { get; set; } = 45.0;
     }
 }

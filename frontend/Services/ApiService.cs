@@ -684,8 +684,8 @@ public class ApiService
         {
             new() { Id = 1, Name = "Amboseli Rhino & Elephant Rapid Unit", CallSign = "PATROL-AMB-01", UnitType = "LAND_CRUISER", Latitude = -2.6210, Longitude = 37.2450, Status = "AVAILABLE", Sector = "Amboseli NP" },
             new() { Id = 2, Name = "Tsavo East Strike Team", CallSign = "PATROL-TSV-03", UnitType = "LAND_CRUISER", Latitude = -2.8540, Longitude = 38.6010, Status = "AVAILABLE", Sector = "Tsavo East NP" },
-            new() { Id = 3, Name = "Mara Predator Rapid Response", CallSign = "PATROL-MAR-02", UnitType = "LAND_CRUISER", Latitude = -1.4500, Longitude = 35.1500, Status = "AVAILABLE", Sector = "Maasai Mara" },
-            new() { Id = 4, Name = "KWS Airwing Recon Cessna", CallSign = "AIRWING-KWS-09", UnitType = "AIRWING", Latitude = -1.3650, Longitude = 36.8500, Status = "AVAILABLE", Sector = "Nairobi NP" }
+            new() { Id = 3, Name = "Mara Predator Rapid Response", CallSign = "PATROL-MAR-02", UnitType = "LAND_CRUISER", Latitude = -1.4500, Longitude = 35.1500, Status = "AVAILABLE", Sector = "Maasai Mara", AltitudeFt = 0, SpeedKmh = 45.0 },
+            new() { Id = 4, Name = "KWS Airwing Recon Cessna", CallSign = "AIRWING-KWS-09", UnitType = "AIRWING", Latitude = -1.3650, Longitude = 36.8500, Status = "ON_PATROL", Sector = "Nairobi NP", AltitudeFt = 2450, SpeedKmh = 165.0 }
         };
     }
 }
