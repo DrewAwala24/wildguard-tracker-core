@@ -174,34 +174,6 @@ KWS/
 
 ---
 
-## 🔒 Security & Configuration
-
-> **Never commit `application.properties` with real credentials.**
-
-The real `application.properties` is excluded by `.gitignore`. A safe template is provided at:
-
-```
-backend/src/main/resources/application.properties.template
-```
-
-### Local Setup
-1. Copy the template:
-   ```powershell
-   Copy-Item backend\src\main\resources\application.properties.template `
-              backend\src\main\resources\application.properties
-   ```
-2. Edit `application.properties` and replace `YOUR_LOCAL_PASSWORD_HERE` with your local PostgreSQL password.
-
-### Production (Render)
-Set the following environment variables in the Render dashboard:
-| Variable | Description |
-| :--- | :--- |
-| `SPRING_DATASOURCE_URL` | Full PostgreSQL connection URL |
-| `SPRING_DATASOURCE_USERNAME` | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | Database password |
-| `PORT` | Assigned automatically by Render |
-
----
 
 ## 🚀 Getting Started
 
