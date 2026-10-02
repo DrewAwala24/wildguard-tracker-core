@@ -1,5 +1,7 @@
 package com.kws.backend.backend.service;
 
+import com.kws.backend.backend.dto.AnimalDto;
+import com.kws.backend.backend.dto.TelemetryDto;
 import com.kws.backend.backend.dto.TelemetryRequestDto;
 import com.kws.backend.backend.dto.TelemetryTrailDto;
 import com.kws.backend.backend.model.Animal;
@@ -50,12 +52,39 @@ public class TelemetryService {
         return telemetryRepository.findAll();
     }
 
+    public List<TelemetryDto> getAllTelemetryDtos() {
+        return telemetryRepository.findAll().stream().map(t -> {
+            Animal animal = t.getAnimal();
+            AnimalDto animalDto = null;
+            String collarId = null;
+            if (animal != null) {
+                collarId = animal.getCollarId();
+                animalDto = new AnimalDto();
+                animalDto.setId(animal.getId());
+                animalDto.setName(animal.getName());
+                animalDto.setSpecies(animal.getSpecies());
+                animalDto.setCollarId(animal.getCollarId());
+            }
+            Double lat = t.getLocation() != null ? t.getLocation().getY() : null;
+            Double lng = t.getLocation() != null ? t.getLocation().getX() : null;
+            return new TelemetryDto(
+                    t.getId(),
+                    collarId,
+                    collarId,
+                    animalDto,
+                    lat,
+                    lng,
+                    t.getTimestamp()
+            );
+        }).collect(Collectors.toList());
+    }
+
     public List<TelemetryTrailDto> getAnimalTrail(String collarId) {
         var animalOpt = animalRepository.findByCollarId(collarId);
         if (animalOpt.isEmpty()) {
             return Collections.emptyList();
         }
-        List<TelemetryLocation> recent = telemetryRepository.findTop15ByAnimalIdOrderByTimestampDesc(animalOpt.get().getId());
+        List<TelemetryLocation> recent = telemetryRepository.findTop15ByAnimal_IdOrderByTimestampDesc(animalOpt.get().getId());
         // Reverse so it's chronologically oldest to newest for map polyline
         Collections.reverse(recent);
         return recent.stream()

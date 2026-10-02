@@ -61,7 +61,7 @@ public class TelemetrySimulationService {
 
         int updatedCount = 0;
         for (Animal animal : animals) {
-            var latestOpt = telemetryRepository.findTop1ByAnimalIdOrderByTimestampDesc(animal.getId());
+            var latestOpt = telemetryRepository.findTop1ByAnimal_IdOrderByTimestampDesc(animal.getId());
 
             double curLat;
             double curLng;

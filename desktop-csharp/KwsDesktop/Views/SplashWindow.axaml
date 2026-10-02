@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="KwsDesktop.Views.SplashWindow"
+        Title="KWS WildGuard Tracker"
+        Width="480" Height="320"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="#0a0f06"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <Border Background="#0a0f06" BorderBrush="#1e2d19" BorderThickness="1" CornerRadius="12">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+
+            <!-- KWS Crest / Logo -->
+            <Border Width="72" Height="72" CornerRadius="36"
+                    Background="#182414"
+                    BorderBrush="#d4a017" BorderThickness="2"
+                    HorizontalAlignment="Center">
+                <TextBlock Text="🦁" FontSize="36" HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- Title -->
+            <TextBlock Text="KENYA WILDLIFE SERVICE"
+                       FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter"
+                       FontSize="18" FontWeight="Bold"
+                       Foreground="#d4a017"
+                       LetterSpacing="4"
+                       HorizontalAlignment="Center"/>
+
+            <TextBlock Text="WildGuard Operations Command"
+                       FontSize="12"
+                       Foreground="#4d5e48"
+                       HorizontalAlignment="Center"/>
+
+            <!-- Separator -->
+            <Border Height="1" Background="#1e2d19" Width="300" Margin="0,4,0,0"/>
+
+            <!-- Status Message -->
+            <TextBlock x:Name="StatusLabel"
+                       Text="Initialising…"
+                       FontSize="11"
+                       Foreground="#94a38a"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="380"
+                       TextAlignment="Center"/>
+
+            <!-- Progress Bar -->
+            <ProgressBar IsIndeterminate="True"
+                         Width="300" Height="3"
+                         Foreground="#d4a017"
+                         Background="#1e2d19"/>
+
+            <TextBlock Text="v1.0 — Powered by Java + C# + PostGIS"
+                       FontSize="9"
+                       Foreground="#2a3a24"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Border>
+</Window>

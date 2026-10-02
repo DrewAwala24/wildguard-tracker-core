@@ -1,0 +1,80 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:webview="clr-namespace:AvaloniaWebView;assembly=Avalonia.WebView"
+        x:Class="KwsDesktop.Views.MainWindow"
+        Title="Kenya Wildlife Service — WildGuard Operations Command"
+        MinWidth="1280" MinHeight="768"
+        Width="1600" Height="960"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="#0a0f06">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Native Title Bar supplement: thin KWS gold stripe -->
+        <Border Grid.Row="0" Background="#0d1a0a"
+                BorderBrush="#d4a01744" BorderThickness="0,0,0,1"
+                Padding="12,6">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- Brand -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center">
+                    <Border Width="28" Height="28" CornerRadius="14"
+                            Background="#182414" BorderBrush="#d4a017" BorderThickness="1.5">
+                        <TextBlock Text="🦁" FontSize="14"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Text="KENYA WILDLIFE SERVICE"
+                                   Foreground="#d4a017"
+                                   FontSize="11" FontWeight="Bold"
+                                   LetterSpacing="2"/>
+                        <TextBlock Text="WildGuard — Operations Command"
+                                   Foreground="#4d5e48"
+                                   FontSize="9"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Live Status Pill -->
+                <Border Grid.Column="1" HorizontalAlignment="Center"
+                        Background="#0d2b18" BorderBrush="#16a34a44"
+                        BorderThickness="1" CornerRadius="20"
+                        Padding="12,4">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Ellipse Width="6" Height="6" Fill="#16a34a">
+                            <Ellipse.Styles>
+                                <Style Selector="Ellipse">
+                                    <Style.Animations>
+                                        <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                                            <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                            <KeyFrame Cue="50%"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                                            <KeyFrame Cue="100%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                        </Animation>
+                                    </Style.Animations>
+                                </Style>
+                            </Ellipse.Styles>
+                        </Ellipse>
+                        <TextBlock Text="TELEMETRY LIVE — PostGIS Spatial Active"
+                                   Foreground="#16a34a"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   LetterSpacing="1"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Window Controls Info -->
+                <TextBlock Grid.Column="2"
+                           Text="Java + C# + Avalonia UI"
+                           Foreground="#2a3a24"
+                           FontSize="9"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- The Web Dashboard embedded via WebView -->
+        <webview:WebView Grid.Row="1"
+                         x:Name="DashboardWebView"
+                         Url="http://localhost:8080" />
+
+    </Grid>
+</Window>

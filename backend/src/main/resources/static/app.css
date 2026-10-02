@@ -1,0 +1,1061 @@
+/* ─────────────────────────────────────────────────────────────────
+   KWS WildGuard — Design System
+   Senior-grade CSS: design tokens → components → layouts → views
+──────────────────────────────────────────────────────────────── */
+
+/* ── 1. Design Tokens ──────────────────────────────────────────── */
+:root {
+  /* Background hierarchy */
+  --bg-base:      #070d04;
+  --bg-surface:   #0d1509;
+  --bg-raised:    #132010;
+  --bg-overlay:   #1a2c16;
+  --bg-highlight: #213520;
+
+  /* Brand / accent palette */
+  --gold:         #c9960e;
+  --gold-bright:  #e8b520;
+  --gold-subtle:  rgba(201,150,14,0.12);
+  --gold-border:  rgba(201,150,14,0.25);
+
+  --emerald:      #15803d;
+  --emerald-bright: #22c55e;
+  --emerald-subtle: rgba(21,128,61,0.15);
+
+  --teal:         #0891b2;
+  --teal-bright:  #22d3ee;
+  --teal-subtle:  rgba(8,145,178,0.12);
+
+  --crimson:      #b91c1c;
+  --crimson-bright: #ef4444;
+  --crimson-subtle: rgba(185,28,28,0.15);
+
+  /* Text hierarchy */
+  --text-primary:   #e8f0e5;
+  --text-secondary: #8fa887;
+  --text-tertiary:  #4d6347;
+  --text-inverse:   #0d1509;
+
+  /* Borders */
+  --border:        rgba(255,255,255,0.055);
+  --border-mid:    rgba(255,255,255,0.10);
+  --border-gold:   rgba(201,150,14,0.30);
+  --border-emerald:rgba(21,128,61,0.30);
+
+  /* Shadows */
+  --shadow-xs:  0 1px 2px  rgba(0,0,0,0.5);
+  --shadow-sm:  0 2px 8px  rgba(0,0,0,0.55);
+  --shadow-md:  0 4px 20px rgba(0,0,0,0.6);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,0.65);
+  --shadow-xl:  0 16px 64px rgba(0,0,0,0.7);
+
+  /* Spacing — 4 px grid */
+  --sp-1: 4px;  --sp-2: 8px;   --sp-3: 12px;
+  --sp-4: 16px; --sp-5: 20px;  --sp-6: 24px;
+  --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
+
+  /* Type */
+  --font-heading: 'Outfit', system-ui, sans-serif;
+  --font-body:    'Inter',  system-ui, sans-serif;
+
+  /* Radii */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 9999px;
+
+  /* Transitions */
+  --t-fast:   0.12s ease;
+  --t-base:   0.22s ease;
+  --t-slow:   0.40s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --header-h: 56px;
+  --strip-h:  44px;
+  --panel-w:  380px;
+}
+
+/* ── 2. Reset & Base ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Leaflet popup skin override */
+.leaflet-popup-content-wrapper {
+  background: #0d1a0a !important;
+  border: 1px solid var(--border-gold) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+}
+.leaflet-popup-tip { background: #0d1a0a !important; }
+.leaflet-popup-content { margin: 12px 14px !important; }
+
+/* ── 3. View System ────────────────────────────────────────────── */
+.view {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform var(--t-slow), opacity 0.35s ease;
+}
+
+.view--active { transform: translateX(0); opacity: 1; pointer-events: all; }
+.view:not(.view--active) { transform: translateX(100%); opacity: 0; pointer-events: none; }
+
+/* Dashboard never slides (it's the base) */
+#view-dashboard { transform: none !important; opacity: 1 !important; }
+#view-dashboard.pushed { transform: translateX(-6%) !important; opacity: 0.4 !important; }
+
+/* ── 4. Header ─────────────────────────────────────────────────── */
+.header {
+  height: var(--header-h);
+  display: flex; align-items: center; gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.header__brand {
+  display: flex; align-items: center; gap: var(--sp-3);
+  min-width: 220px;
+}
+
+.header__logo {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-gold);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.header__org {
+  font-family: var(--font-heading);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--gold-bright);
+}
+
+.header__sub {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.5px;
+}
+
+.header__kpis {
+  display: flex; align-items: center; gap: var(--sp-4);
+  flex: 1;
+  justify-content: center;
+}
+
+.kpi {
+  display: flex; flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.kpi__value {
+  font-family: var(--font-heading);
+  font-size: 20px; font-weight: 700;
+  color: var(--text-primary);
+  transition: color var(--t-base);
+}
+
+.kpi__value--gold  { color: var(--gold-bright); }
+.kpi__value--safe  { color: var(--emerald-bright); }
+.kpi__value--alert { color: var(--crimson-bright); }
+
+.kpi__label {
+  font-size: 10px; font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.kpi__divider {
+  width: 1px; height: 28px;
+  background: var(--border);
+}
+
+.header__actions {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* Live badge */
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: var(--emerald-subtle);
+  border: 1px solid var(--border-emerald);
+  border-radius: var(--r-full);
+  font-size: 10px; font-weight: 700;
+  color: var(--emerald-bright);
+  letter-spacing: 1px;
+}
+
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--emerald-bright);
+  animation: pulse-dot 1.4s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.25; transform: scale(0.7); }
+}
+
+/* ── 5. Buttons ────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 6px 14px;
+  border: none; border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+
+.btn--primary {
+  background: var(--gold);
+  color: var(--text-inverse);
+}
+.btn--primary:hover { background: var(--gold-bright); transform: translateY(-1px); }
+
+.btn--ghost {
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn--ghost:hover { border-color: var(--border-mid); color: var(--text-primary); }
+
+.btn--danger {
+  background: var(--crimson-subtle);
+  color: var(--crimson-bright);
+  border: 1px solid var(--crimson);
+}
+.btn--danger:hover { background: var(--crimson); color: #fff; }
+
+/* ── 6. Sector Strip ───────────────────────────────────────────── */
+.strip {
+  height: var(--strip-h);
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-5);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: var(--sp-4);
+  overflow: hidden;
+}
+
+.sector-chips {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.chip {
+  padding: 4px 12px;
+  border-radius: var(--r-full);
+  font-size: 11px; font-weight: 600;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+
+.chip:hover, .chip--active {
+  background: var(--gold-subtle);
+  border-color: var(--border-gold);
+  color: var(--gold-bright);
+}
+
+.weather-ticker {
+  display: flex; gap: var(--sp-5); align-items: center;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.weather-ticker span {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* ── 7. Dashboard Grid ─────────────────────────────────────────── */
+.dashboard-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr var(--panel-w);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── 8. Map ────────────────────────────────────────────────────── */
+.map-container {
+  position: relative;
+  overflow: hidden;
+}
+
+#operations-map {
+  width: 100%; height: 100%;
+  background: var(--bg-base);
+}
+
+.map-badge {
+  position: absolute;
+  top: var(--sp-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  padding: 5px 14px;
+  background: rgba(13,21,9,0.82);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-full);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gold-bright);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.map-legend {
+  position: absolute;
+  bottom: var(--sp-4);
+  left: var(--sp-4);
+  z-index: 500;
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(13,21,9,0.88);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.legend-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10.5px; color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-dash {
+  width: 18px; height: 0;
+  border-top: 2px dashed var(--gold-bright);
+  flex-shrink: 0;
+}
+
+/* Collar markers */
+.collar-pulse {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--emerald-bright);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.3);
+  animation: pulse-collar 2s infinite;
+}
+
+.collar-alert {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--crimson-bright);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 4px rgba(239,68,68,0.4);
+  animation: pulse-alert 0.8s infinite;
+}
+
+.patrol-marker {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  background: var(--teal-bright);
+  border: 2px solid #fff;
+  transform: rotate(45deg);
+}
+
+@keyframes pulse-collar {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(34,197,94,0.0); }
+}
+@keyframes pulse-alert {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(239,68,68,0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(239,68,68,0.0); }
+}
+
+/* ── 9. Operations Panel ───────────────────────────────────────── */
+.panel {
+  display: flex; flex-direction: column;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.panel__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: var(--sp-3) 0;
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 12px; font-weight: 600;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  border-bottom: 2px solid transparent;
+  letter-spacing: 0.5px;
+}
+.tab:hover { color: var(--text-secondary); }
+.tab--active {
+  color: var(--gold-bright);
+  border-bottom-color: var(--gold);
+}
+
+.panel__search {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-search-input {
+  width: 100%;
+  padding: 6px 10px 6px 30px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  transition: border-color var(--t-fast);
+  background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234d6347' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+.panel-search-input:focus { border-color: var(--border-gold); }
+.panel-search-input::placeholder { color: var(--text-tertiary); }
+
+.panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-2);
+  scroll-behavior: smooth;
+}
+
+.panel__body::-webkit-scrollbar { width: 4px; }
+.panel__body::-webkit-scrollbar-track { background: transparent; }
+.panel__body::-webkit-scrollbar-thumb { background: var(--bg-overlay); border-radius: 2px; }
+
+/* ── 10. Wildlife Cards ────────────────────────────────────────── */
+.wildlife-card {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-2);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.wildlife-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--emerald);
+  border-radius: 3px 0 0 3px;
+  transition: background var(--t-fast);
+}
+
+.wildlife-card:hover {
+  border-color: var(--border-gold);
+  background: var(--bg-overlay);
+  transform: translateX(2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.wildlife-card.is-breaching::before { background: var(--crimson-bright); }
+.wildlife-card.is-breaching { border-color: rgba(185,28,28,0.35); }
+
+.wildlife-photo {
+  width: 44px; height: 44px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-gold);
+}
+
+.wildlife-info { flex: 1; min-width: 0; }
+
+.wildlife-name {
+  font-family: var(--font-heading);
+  font-size: 13px; font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.wildlife-collar {
+  font-size: 10px;
+  color: var(--gold);
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+.wildlife-species {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 2px 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.wildlife-footer {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin-top: 3px;
+}
+
+/* Status badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.badge--safe {
+  background: var(--emerald-subtle);
+  color: var(--emerald-bright);
+  border: 1px solid var(--border-emerald);
+}
+
+.badge--breach {
+  background: var(--crimson-subtle);
+  color: var(--crimson-bright);
+  border: 1px solid rgba(185,28,28,0.4);
+}
+
+.badge--active {
+  background: var(--teal-subtle);
+  color: var(--teal-bright);
+  border: 1px solid rgba(8,145,178,0.3);
+}
+
+.battery-bar {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--text-tertiary);
+}
+
+.battery-icon {
+  display: inline-block;
+  width: 20px; height: 10px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  position: relative;
+  color: var(--emerald-bright);
+}
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  right: -4px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 5px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+}
+.battery-fill {
+  position: absolute;
+  left: 1px; top: 1px; bottom: 1px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: width var(--t-base);
+}
+
+/* ── 11. Patrol Cards ──────────────────────────────────────────── */
+.patrol-card {
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-2);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: all var(--t-fast);
+}
+.patrol-card:hover { border-color: var(--teal-bright); background: var(--bg-overlay); }
+
+.patrol-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-2);
+}
+
+.patrol-name {
+  font-family: var(--font-heading);
+  font-size: 13px; font-weight: 600;
+  color: var(--teal-bright);
+}
+
+.patrol-callsign {
+  font-size: 10px; font-family: monospace;
+  color: var(--text-tertiary);
+  background: var(--bg-surface);
+  padding: 2px 6px; border-radius: var(--r-sm);
+}
+
+.patrol-meta {
+  font-size: 11px; color: var(--text-secondary);
+  margin-bottom: var(--sp-2);
+}
+
+.patrol-actions {
+  display: flex; gap: var(--sp-2);
+}
+
+/* ── 12. Park Cards ────────────────────────────────────────────── */
+.park-card {
+  margin-bottom: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all var(--t-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.park-card::after {
+  content: 'VIEW PARK →';
+  position: absolute;
+  right: var(--sp-4); top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold);
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+
+.park-card:hover {
+  border-color: var(--border-gold);
+  background: var(--bg-overlay);
+  box-shadow: 0 4px 20px var(--gold-subtle);
+}
+.park-card:hover::after { opacity: 1; }
+
+.park-card__name {
+  font-family: var(--font-heading);
+  font-size: 14px; font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--sp-1);
+}
+
+.park-card__sub {
+  font-size: 11px; color: var(--text-secondary);
+  margin-bottom: var(--sp-3);
+}
+
+.park-card__meta {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--sp-1);
+}
+
+.park-card__meta-item {
+  font-size: 10.5px; color: var(--text-tertiary);
+}
+.park-card__meta-item b { color: var(--text-secondary); font-weight: 500; }
+
+.threat-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-top: var(--sp-2);
+}
+.threat-low      { background: var(--emerald-subtle); color: var(--emerald-bright); border: 1px solid var(--border-emerald); }
+.threat-moderate { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+.threat-high     { background: var(--crimson-subtle); color: var(--crimson-bright); border: 1px solid rgba(185,28,28,0.3); }
+
+/* Incident/Alert cards */
+.incident-card {
+  margin-bottom: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--crimson-subtle);
+  border: 1px solid rgba(185,28,28,0.35);
+  border-radius: var(--r-md);
+}
+.incident-title {
+  font-size: 12px; font-weight: 700;
+  color: var(--crimson-bright);
+  display: flex; justify-content: space-between;
+  margin-bottom: var(--sp-2);
+}
+.incident-desc { font-size: 11px; color: var(--text-secondary); margin-bottom: var(--sp-3); }
+.incident-actions { display: flex; gap: var(--sp-2); }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: var(--sp-10) var(--sp-6);
+  color: var(--text-tertiary);
+  text-align: center;
+  gap: var(--sp-2);
+}
+.empty-state__icon { font-size: 32px; opacity: 0.5; }
+.empty-state__title { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.empty-state__sub { font-size: 11px; }
+
+/* ── 13. Modal ─────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--t-base);
+}
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  width: 420px;
+  max-width: 96vw;
+  box-shadow: var(--shadow-xl);
+  transform: translateY(8px);
+  transition: transform var(--t-base);
+}
+.modal-backdrop.open .modal { transform: translateY(0); }
+
+.modal__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-5);
+}
+.modal__title {
+  font-family: var(--font-heading);
+  font-size: 16px; font-weight: 700;
+  color: var(--text-primary);
+}
+.modal__close {
+  background: none; border: none;
+  color: var(--text-tertiary); font-size: 20px;
+  cursor: pointer; line-height: 1; padding: 2px 6px;
+  border-radius: var(--r-sm);
+  transition: color var(--t-fast);
+}
+.modal__close:hover { color: var(--text-primary); }
+
+.modal__form { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.form-group { display: flex; flex-direction: column; gap: var(--sp-1); }
+
+.form-label {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-mid);
+  border-radius: var(--r-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color var(--t-fast);
+  -webkit-appearance: none;
+}
+.form-input:focus,
+.form-select:focus { border-color: var(--gold); }
+.form-select option { background: var(--bg-raised); }
+
+.modal__actions {
+  display: flex; gap: var(--sp-2);
+  justify-content: flex-end;
+  margin-top: var(--sp-2);
+}
+
+/* ── 14. Park Detail View ──────────────────────────────────────── */
+.park-detail-view {
+  background: var(--bg-base);
+  z-index: 1000;
+}
+
+.pd-header {
+  display: flex; align-items: center; gap: var(--sp-4);
+  padding: 0 var(--sp-6);
+  height: 60px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-gold);
+  flex-shrink: 0;
+}
+
+.pd-back {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 6px 14px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  flex-shrink: 0;
+}
+.pd-back:hover {
+  border-color: var(--border-gold);
+  color: var(--gold-bright);
+}
+.pd-back svg { flex-shrink: 0; }
+
+.pd-header__identity {
+  display: flex; align-items: center; gap: var(--sp-4);
+  flex: 1;
+}
+
+.pd-code-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--gold-subtle);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-sm);
+  font-family: var(--font-heading);
+  font-size: 11px; font-weight: 800;
+  color: var(--gold-bright);
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+.pd-park-name {
+  font-family: var(--font-heading);
+  font-size: 20px; font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.pd-park-location {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Stats bar */
+.pd-stats-bar {
+  display: flex;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.pd-stat {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: var(--sp-3) var(--sp-2);
+  border-right: 1px solid var(--border);
+  gap: 2px;
+}
+.pd-stat:last-child { border-right: none; }
+
+.pd-stat__value {
+  font-family: var(--font-heading);
+  font-size: 18px; font-weight: 700;
+  color: var(--gold-bright);
+}
+.pd-stat__label {
+  font-size: 9.5px; font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* Park detail body: 2-column */
+.pd-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.pd-left {
+  overflow-y: auto;
+  padding: var(--sp-5);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: var(--sp-5);
+}
+.pd-left::-webkit-scrollbar { width: 4px; }
+.pd-left::-webkit-scrollbar-thumb { background: var(--bg-overlay); border-radius: 2px; }
+
+.pd-right {
+  position: relative;
+  overflow: hidden;
+}
+
+.pd-section { }
+
+.pd-section__title {
+  font-family: var(--font-heading);
+  font-size: 13px; font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1px;
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--sp-3);
+}
+
+.pd-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 18px;
+  padding: 0 6px;
+  background: var(--gold-subtle);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-full);
+  font-size: 10px; font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.pd-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--sp-4);
+}
+
+.pd-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.pd-info-cell {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: var(--sp-3);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.pd-ic__label {
+  font-size: 9.5px; font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pd-ic__value {
+  font-size: 12px; font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Park roster (animals in park) */
+.pd-roster {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+}
+
+.pd-animal-row {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  transition: all var(--t-fast);
+  cursor: pointer;
+}
+.pd-animal-row:hover {
+  border-color: var(--border-gold);
+  background: var(--bg-overlay);
+}
+
+.pd-animal-photo {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-gold);
+  flex-shrink: 0;
+}
+
+.pd-animal-name {
+  font-weight: 600; font-size: 12px;
+  color: var(--text-primary);
+}
+.pd-animal-species {
+  font-size: 10.5px; color: var(--text-secondary);
+}
+.pd-animal-collar {
+  font-size: 10px; color: var(--gold);
+  font-family: monospace;
+}
+
+/* Patrol roster */
+.pd-patrol-roster { display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.pd-patrol-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.pd-patrol-name { font-weight: 600; font-size: 12px; color: var(--teal-bright); }
+.pd-patrol-meta { font-size: 10.5px; color: var(--text-secondary); }
+
+/* Park map in detail view */
+.pd-map-wrapper {
+  position: relative;
+  width: 100%; height: 100%;
+}
+
+.pd-map {
+  width: 100%; height: 100%;
+  background: var(--bg-base);
+}
+
+.pd-map-label {
+  position: absolute;
+  top: var(--sp-3); left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  padding: 4px 12px;
+  background: rgba(13,21,9,0.85);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-full);
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 1.5px; color: var(--gold-bright);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+/* ── 15. Section loading skeleton ──────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-raised) 25%, var(--bg-overlay) 50%, var(--bg-raised) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--r-md);
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── 16. Utility ───────────────────────────────────────────────── */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }

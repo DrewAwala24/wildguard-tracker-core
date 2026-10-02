@@ -1,9 +1,15 @@
 package com.kws.backend.backend.config;
 
+import com.kws.backend.backend.model.Animal;
 import com.kws.backend.backend.model.GeofenceZone;
 import com.kws.backend.backend.model.ParkProfile;
+import com.kws.backend.backend.model.PatrolUnit;
+import com.kws.backend.backend.repository.AnimalRepository;
 import com.kws.backend.backend.repository.GeofenceRepository;
 import com.kws.backend.backend.repository.ParkProfileRepository;
+import com.kws.backend.backend.repository.PatrolRepository;
+import com.kws.backend.backend.repository.TelemetryRepository;
+import com.kws.backend.backend.service.TelemetrySimulationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
@@ -21,12 +27,26 @@ public class DataInitializer implements CommandLineRunner {
 
     private final GeofenceRepository geofenceRepository;
     private final ParkProfileRepository parkProfileRepository;
+    private final AnimalRepository animalRepository;
+    private final PatrolRepository patrolRepository;
+    private final TelemetryRepository telemetryRepository;
+    private final TelemetrySimulationService telemetrySimulationService;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     @Override
     public void run(String... args) {
         seedGeofences();
         seedParkProfiles();
+        seedAnimals();
+        seedPatrolUnits();
+        seedInitialTelemetry();
+    }
+
+    private void seedInitialTelemetry() {
+        if (telemetryRepository.count() == 0) {
+            log.info("Generating initial GPS telemetry fixes for collared wildlife...");
+            telemetrySimulationService.simulateStep();
+        }
     }
 
     private void seedGeofences() {
@@ -213,6 +233,46 @@ public class DataInitializer implements CommandLineRunner {
 
         parkProfileRepository.saveAll(List.of(amboseli, tsavoEast, tsavoWest, mara, nairobi, olPejeta));
         log.info("Successfully seeded Kenyan park operational profiles.");
+    }
+
+    private void seedAnimals() {
+        if (animalRepository.count() > 0) {
+            return;
+        }
+
+        log.info("Seeding initial Kenya collared wildlife registry...");
+        List<Animal> defaultAnimals = List.of(
+                new Animal(null, "Echo's Matriarch", "African Elephant", "KWS-AMB-ELE01"),
+                new Animal(null, "Mutula Bull", "African Elephant", "KWS-AMB-ELE04"),
+                new Animal(null, "Galana Red Bull", "African Elephant", "KWS-TSV-ELE12"),
+                new Animal(null, "Satao Pride Lioness", "Lion", "KWS-TSV-LIO03"),
+                new Animal(null, "Kipsing Male", "Lion", "KWS-MAR-LIO07"),
+                new Animal(null, "Talek River Female", "Cheetah", "KWS-MAR-CHT02"),
+                new Animal(null, "Mukurwe Black Rhino", "Eastern Black Rhino", "KWS-NBI-RHN01"),
+                new Animal(null, "Simba Nairobi", "Lion", "KWS-NBI-LIO05"),
+                new Animal(null, "Baraka Rhino", "Black Rhino", "KWS-OLP-RHN03"),
+                new Animal(null, "Kibo Giraffe", "Maasai Giraffe", "KWS-AMB-GIR02"),
+                new Animal(null, "Zuri Plains Zebra", "Plains Zebra", "KWS-NBI-ZEB08")
+        );
+        animalRepository.saveAll(defaultAnimals);
+        log.info("Successfully seeded {} collared animals.", defaultAnimals.size());
+    }
+
+    private void seedPatrolUnits() {
+        if (patrolRepository.count() > 0) {
+            return;
+        }
+
+        log.info("Seeding active KWS patrol units and airwing aircraft...");
+        List<PatrolUnit> defaultPatrols = List.of(
+                new PatrolUnit(null, "Amboseli Ranger Cruiser Alpha", "KWS-CRU-01", "LAND_CRUISER", -2.665, 37.250, "AVAILABLE", "Amboseli NP"),
+                new PatrolUnit(null, "Tsavo Galana Airwing 1", "KWS-AIR-04", "AIRWING", -2.850, 38.650, "ON_PATROL", "Tsavo East NP"),
+                new PatrolUnit(null, "Mara Anti-Poaching Interceptor", "KWS-CRU-09", "LAND_CRUISER", -1.490, 35.140, "AVAILABLE", "Maasai Mara"),
+                new PatrolUnit(null, "Nairobi Sanctuary Quick Response", "KWS-CRU-03", "LAND_CRUISER", -1.370, 36.850, "AVAILABLE", "Nairobi NP"),
+                new PatrolUnit(null, "Ol Pejeta Rhino Security Cruiser", "KWS-CRU-07", "LAND_CRUISER", 0.035, 36.960, "AVAILABLE", "Ol Pejeta")
+        );
+        patrolRepository.saveAll(defaultPatrols);
+        log.info("Successfully seeded {} KWS patrol units.", defaultPatrols.size());
     }
 
     private Polygon createPolygon(Coordinate[] coords) {

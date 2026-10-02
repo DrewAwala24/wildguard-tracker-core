@@ -46,7 +46,7 @@ public class AnimalService {
         dto.setSex(determineSex(animal.getName()));
         dto.setCollarBattery((int) Math.round(simulationService.getBattery(animal.getId())));
 
-        Optional<TelemetryLocation> latestLoc = telemetryRepository.findTop1ByAnimalIdOrderByTimestampDesc(animal.getId());
+        Optional<TelemetryLocation> latestLoc = telemetryRepository.findTop1ByAnimal_IdOrderByTimestampDesc(animal.getId());
         if (latestLoc.isPresent() && latestLoc.get().getLocation() != null) {
             double lat = latestLoc.get().getLocation().getY();
             double lng = latestLoc.get().getLocation().getX();

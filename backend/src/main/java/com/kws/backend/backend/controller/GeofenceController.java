@@ -1,5 +1,6 @@
 package com.kws.backend.backend.controller;
 
+import com.kws.backend.backend.dto.GeofenceDto;
 import com.kws.backend.backend.model.GeofenceZone;
 import com.kws.backend.backend.service.GeofenceService;
 import lombok.RequiredArgsConstructor;
@@ -10,12 +11,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/geofences")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class GeofenceController {
     private final GeofenceService geofenceService;
 
     @GetMapping
-    public ResponseEntity<List<GeofenceZone>> getAllGeofences() {
-        return ResponseEntity.ok(geofenceService.getAllZones());
+    public ResponseEntity<List<GeofenceDto>> getAllGeofences() {
+        return ResponseEntity.ok(geofenceService.getAllZoneDtos());
     }
 
     @PostMapping

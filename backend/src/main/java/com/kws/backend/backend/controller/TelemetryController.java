@@ -1,5 +1,6 @@
 package com.kws.backend.backend.controller;
 
+import com.kws.backend.backend.dto.TelemetryDto;
 import com.kws.backend.backend.dto.TelemetryRequestDto;
 import com.kws.backend.backend.dto.TelemetryTrailDto;
 import com.kws.backend.backend.model.TelemetryLocation;
@@ -21,8 +22,8 @@ public class TelemetryController {
     private final TelemetrySimulationService simulationService;
 
     @GetMapping
-    public ResponseEntity<List<TelemetryLocation>> getAllTelemetry() {
-        return ResponseEntity.ok(telemetryService.getAllTelemetry());
+    public ResponseEntity<List<TelemetryDto>> getAllTelemetry() {
+        return ResponseEntity.ok(telemetryService.getAllTelemetryDtos());
     }
 
     @GetMapping("/animal/{collarId}/trail")

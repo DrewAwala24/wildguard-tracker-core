@@ -7,7 +7,7 @@
     WinUI XAML compiler both emit InitializeComponent, and an out-of-tree obj
     folder makes SourceGen compile the WinUI copy of Platforms/Windows/App.xaml.
   -->
-  <PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(LOCALAPPDATA)' != ''">
     <BaseOutputPath>$(LOCALAPPDATA)\KWS-frontend\bin\</BaseOutputPath>
   </PropertyGroup>
 </Project>

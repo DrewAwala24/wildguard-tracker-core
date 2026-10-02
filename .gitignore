@@ -1,41 +1,85 @@
 # ============================================================
 #  WildGuard Tracker — .gitignore
-#  Excludes secrets, build artifacts, IDE files, and OS noise
+#  Excludes secrets, credentials, build artifacts, IDE files, OS noise
 # ============================================================
 
-# ─── Sensitive Configuration ────────────────────────────────
-# application.properties contains local DB credentials.
-# Copy application.properties.template → application.properties
-# and fill in your credentials locally. NEVER commit the real file.
+# ─── Sensitive Configuration & Secrets ──────────────────────
+# NEVER commit credentials, tokens, or environment files
 backend/src/main/resources/application.properties
+**/application.properties
+!**/application.properties.template
+application-*.properties
+application-*.yml
+application-*.yaml
+secrets.properties
+*.secret
+*.secrets
+.env
+.env.*
+*.env
+credentials.json
+token.json
+local.settings.json
+appsettings.Development.json
+appsettings.Local.json
+*.pem
+*.key
+*.pfx
+*.p12
+*.cert
+*.crt
 
-# ─── Gradle Build Artifacts ─────────────────────────────────
+# ─── .NET / C# Build Artifacts & Binaries ───────────────────
+# Covers frontend, desktop-csharp, and any future .NET projects
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+frontend/bin/
+frontend/obj/
+desktop-csharp/**/bin/
+desktop-csharp/**/obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+project.lock.json
+project.assets.json
+
+# ─── Gradle & Java Build Artifacts ──────────────────────────
 backend/.gradle/
 backend/build/
 backend/out/
+.gradle/
+build/
+out/
+target/
+*.class
+!gradle/wrapper/gradle-wrapper.jar
 !backend/gradlew
 !backend/gradlew.bat
 
-# ─── .NET / MAUI Build Artifacts ────────────────────────────
-frontend/bin/
-frontend/obj/
-frontend/.vs/
-*.user
-
-# ─── Visual Studio / Rider IDE ──────────────────────────────
+# ─── IDE & Editor Configurations ─────────────────────────────
 .vs/
 .idea/
-*.suo
+.vscode/
+*.iml
+*.iws
+*.ipr
 *.swp
 *.swo
+*~
 
-# ─── OS Generated Files ─────────────────────────────────────
+# ─── Logs & Diagnostics ─────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── OS Generated Files ──────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ─── Environment & Local Secrets ────────────────────────────
-.env
-.env.local
-*.secret
-secrets.properties

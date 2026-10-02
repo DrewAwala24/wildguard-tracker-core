@@ -230,14 +230,29 @@ cd backend
 ```
 *`DataInitializer` automatically seeds PostGIS park boundaries (Amboseli, Tsavo, Maasai Mara, Nairobi NP, Kimana buffer) and collared animals on first boot.*
 
-### Running the .NET MAUI Frontend
+### Running the Desktop App (Linux, macOS, Windows)
+
+The application provides a dedicated cross-platform C# desktop application built with **Avalonia UI** and **WebKit2GTK/WebView2**, with an integrated lifecycle manager for the Java Spring Boot backend:
+
+```bash
+# One-command build and launch (launches C# desktop + Java Spring Boot):
+./launch-desktop.sh
+```
+
+Or run each service independently:
+```bash
+# 1. Run Java Backend:
+cd backend && ./gradlew bootRun
+
+# 2. Run C# Desktop Client:
+cd desktop-csharp/KwsDesktop && dotnet run
+```
+
+### Running the Windows .NET MAUI Client
 ```powershell
 cd frontend
 dotnet build -t:Run -f net10.0-windows10.0.19041.0
 ```
-*Or open `frontend/frontend.slnx` in Visual Studio 2022/2026 → select **Windows Machine** → **F5**.*
-
-> **Offline mode:** If the Spring Boot backend is not running, the frontend falls back to a built-in Kenyan wildlife dataset and the simulation engine runs fully client-side.
 
 ---
 

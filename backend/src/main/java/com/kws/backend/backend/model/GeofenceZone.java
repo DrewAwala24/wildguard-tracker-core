@@ -1,5 +1,6 @@
 package com.kws.backend.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ public class GeofenceZone {
     @Column(nullable = false)
     private String zoneType; // e.g., PARK, PRIVATE_FARM
 
+    @JsonIgnore
     @Column(columnDefinition = "geometry(Polygon,4326)", nullable = false)
     private Polygon boundary;
 }

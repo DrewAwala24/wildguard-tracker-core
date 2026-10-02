@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface TelemetryRepository extends JpaRepository<TelemetryLocation, Long> {
-    List<TelemetryLocation> findByAnimalIdOrderByTimestampDesc(Long animalId);
-    List<TelemetryLocation> findTop15ByAnimalIdOrderByTimestampDesc(Long animalId);
-    Optional<TelemetryLocation> findTop1ByAnimalIdOrderByTimestampDesc(Long animalId);
-}
+    List<TelemetryLocation> findByAnimal_IdOrderByTimestampDesc(Long animalId);
+    List<TelemetryLocation> findTop15ByAnimal_IdOrderByTimestampDesc(Long animalId);
+    Optional<TelemetryLocation> findTop1ByAnimal_IdOrderByTimestampDesc(Long animalId);
+}

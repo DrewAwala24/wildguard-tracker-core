@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kenya Wildlife Service WildGuard Operations Command — Real-time spatial wildlife tracking with PostGIS and geofencing.">
+  <title>KWS — WildGuard Operations Command</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,400&display=swap" rel="stylesheet">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       VIEW 1: OPERATIONS DASHBOARD
+  ════════════════════════════════════════════ -->
+  <div id="view-dashboard" class="view view--active">
+
+    <!-- Top Header -->
+    <header class="header" id="kws-header" role="banner">
+      <div class="header__brand">
+        <img src="/images/kws_logo.jpg" alt="KWS" class="header__logo" id="header-logo">
+        <div class="header__identity">
+          <div class="header__org" id="header-org">🇰🇪 KENYA WILDLIFE SERVICE</div>
+          <div class="header__sub" id="header-sub">WildGuard Operations Command&nbsp;&bull;&nbsp;PostGIS Spatial Active</div>
+        </div>
+      </div>
+
+      <!-- Live KPIs -->
+      <div class="header__kpis" id="header-kpi-bar" role="status" aria-live="polite">
+        <div class="kpi" id="kpi-collars">
+          <span class="kpi__value kpi__value--gold" id="kpi-animals">--</span>
+          <span class="kpi__label">Active Collars</span>
+        </div>
+        <div class="kpi__divider"></div>
+        <div class="kpi" id="kpi-patrols-chip">
+          <span class="kpi__value" id="kpi-patrols">--</span>
+          <span class="kpi__label">Patrol Units</span>
+        </div>
+        <div class="kpi__divider"></div>
+        <div class="kpi" id="kpi-alerts-chip">
+          <span class="kpi__value kpi__value--safe" id="kpi-alerts">0</span>
+          <span class="kpi__label">Breach Alerts</span>
+        </div>
+        <div class="kpi__divider"></div>
+        <div class="kpi" id="kpi-battery-chip">
+          <span class="kpi__value" id="kpi-battery">--%</span>
+          <span class="kpi__label">Fleet Battery</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="header__actions" id="header-actions">
+        <div class="live-badge" id="live-indicator" aria-label="Telemetry live">
+          <span class="live-dot"></span>
+          <span>LIVE</span>
+        </div>
+        <button class="btn btn--ghost" id="btn-simulate-step" title="Trigger one GPS telemetry step">
+          ⚡ Step Ping
+        </button>
+        <button class="btn btn--primary" id="btn-open-register">
+          + Register Collar
+        </button>
+      </div>
+    </header>
+
+    <!-- Sector & Weather Strip -->
+    <div class="strip" id="sector-strip" role="navigation" aria-label="Sector filters">
+      <div class="sector-chips" id="sector-chips">
+        <button class="chip chip--active" data-sector="ALL" id="chip-all">All Sectors</button>
+        <button class="chip" data-sector="Amboseli" id="chip-amboseli">Amboseli NP</button>
+        <button class="chip" data-sector="Tsavo" id="chip-tsavo">Tsavo East</button>
+        <button class="chip" data-sector="Mara" id="chip-mara">Maasai Mara</button>
+        <button class="chip" data-sector="Nairobi" id="chip-nairobi">Nairobi NP</button>
+        <button class="chip" data-sector="Pejeta" id="chip-pejeta">Ol Pejeta</button>
+      </div>
+      <div class="weather-ticker" id="weather-ticker" aria-hidden="true">
+        <span>☀️ Amboseli: 29°C · Clear</span>
+        <span>⛅ Tsavo East: 31°C · Dry Breeze</span>
+        <span>🌤️ Maasai Mara: 26°C · Savannah Clouds</span>
+        <span>⛅ Nairobi NP: 24°C · Clear</span>
+        <span>🌡️ Ol Pejeta: 22°C · Plateau Wind</span>
+      </div>
+    </div>
+
+    <!-- Main Grid: Map + Operations Panel -->
+    <main class="dashboard-grid" id="dashboard-grid" role="main">
+
+      <!-- GIS Map Canvas -->
+      <div class="map-container" id="map-container">
+        <div id="operations-map" aria-label="Kenya GIS Operational Map"></div>
+
+        <!-- Floating Map Overlays -->
+        <div class="map-badge" id="map-sovereign-badge">
+          🇰🇪 REPUBLIC OF KENYA &bull; KWS SOVEREIGN DOMAIN
+        </div>
+
+        <div class="map-legend" id="map-legend" aria-label="Map legend">
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#16a34a;"></span>
+            <span>National Park / Reserve</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#f59e0b;"></span>
+            <span>Community Buffer Zone</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#dc2626;"></span>
+            <span>Human-Wildlife Conflict</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#ffd700; border-radius:0; transform:rotate(45deg);"></span>
+            <span>GPS Trail</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#38bdf8;"></span>
+            <span>Patrol / Airwing</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dash" style="border-color:#ffd700;"></span>
+            <span>Kenya Border</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operations Panel -->
+      <aside class="panel" id="operations-panel" aria-label="Operations control panel">
+        <nav class="panel__tabs" id="panel-tabs" role="tablist" aria-label="Dashboard tabs">
+          <button class="tab tab--active" data-tab="wildlife" id="tab-wildlife" role="tab" aria-selected="true">Wildlife</button>
+          <button class="tab" data-tab="patrols" id="tab-patrols" role="tab" aria-selected="false">Patrols</button>
+          <button class="tab" data-tab="alerts" id="tab-alerts" role="tab" aria-selected="false">Alerts</button>
+          <button class="tab" data-tab="parks" id="tab-parks" role="tab" aria-selected="false">Parks</button>
+        </nav>
+
+        <!-- Search / Filter row inside panel -->
+        <div class="panel__search" id="panel-search-row">
+          <input type="search" id="panel-search" class="panel-search-input"
+                 placeholder="Search animals, collars, species…"
+                 aria-label="Search panel items">
+        </div>
+
+        <div class="panel__body" id="panel-body" role="tabpanel">
+          <!-- Rendered by app.js -->
+        </div>
+      </aside>
+    </main>
+  </div><!-- /#view-dashboard -->
+
+
+  <!-- ═══════════════════════════════════════════
+       VIEW 2: PARK DETAIL PAGE
+       Slides in from the right over the dashboard
+  ════════════════════════════════════════════ -->
+  <div id="view-park-detail" class="view park-detail-view" role="main" aria-label="Park detail">
+
+    <!-- Park Detail Header -->
+    <header class="pd-header" id="pd-header">
+      <button class="pd-back" id="pd-back-btn" onclick="closeParkDetail()" aria-label="Back to Operations">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back to Operations
+      </button>
+
+      <div class="pd-header__identity">
+        <span class="pd-code-badge" id="pd-code">AMB</span>
+        <div>
+          <h1 class="pd-park-name" id="pd-name">Amboseli National Park</h1>
+          <p class="pd-park-location" id="pd-county">Kajiado County, Kenya</p>
+        </div>
+      </div>
+
+      <div id="pd-threat-container">
+        <!-- Threat badge injected by JS -->
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="pd-stats-bar" id="pd-stats-bar">
+      <div class="pd-stat">
+        <span class="pd-stat__value" id="pd-area">--</span>
+        <span class="pd-stat__label">Area (km²)</span>
+      </div>
+      <div class="pd-stat">
+        <span class="pd-stat__value" id="pd-established">--</span>
+        <span class="pd-stat__label">Established</span>
+      </div>
+      <div class="pd-stat">
+        <span class="pd-stat__value" id="pd-animal-count">0</span>
+        <span class="pd-stat__label">Collared Animals</span>
+      </div>
+      <div class="pd-stat">
+        <span class="pd-stat__value" id="pd-patrol-count">0</span>
+        <span class="pd-stat__label">Patrol Units</span>
+      </div>
+      <div class="pd-stat">
+        <span class="pd-stat__value" id="pd-fence">--</span>
+        <span class="pd-stat__label">Boundary Security</span>
+      </div>
+    </div>
+
+    <!-- Park Detail Body -->
+    <div class="pd-body" id="pd-body">
+
+      <!-- Left column: info + roster -->
+      <div class="pd-left" id="pd-left">
+
+        <!-- Operational Brief -->
+        <section class="pd-section">
+          <h2 class="pd-section__title">📋 Operational Brief</h2>
+          <p class="pd-description" id="pd-description">Loading…</p>
+          <div class="pd-info-grid">
+            <div class="pd-info-cell">
+              <span class="pd-ic__label">Ranger HQ</span>
+              <span class="pd-ic__value" id="pd-hq">--</span>
+            </div>
+            <div class="pd-info-cell">
+              <span class="pd-ic__label">Ecosystem</span>
+              <span class="pd-ic__value" id="pd-ecosystem">--</span>
+            </div>
+            <div class="pd-info-cell">
+              <span class="pd-ic__label">Key Waterholes</span>
+              <span class="pd-ic__value" id="pd-waterholes">--</span>
+            </div>
+            <div class="pd-info-cell">
+              <span class="pd-ic__label">Key Species</span>
+              <span class="pd-ic__value" id="pd-keyspecies">--</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Collared Wildlife Roster -->
+        <section class="pd-section">
+          <h2 class="pd-section__title">🦁 Collared Wildlife Roster
+            <span class="pd-count-badge" id="pd-animal-badge">0</span>
+          </h2>
+          <div id="pd-animals-list" class="pd-roster">
+            <!-- Injected by JS -->
+          </div>
+        </section>
+
+        <!-- Patrol Units -->
+        <section class="pd-section">
+          <h2 class="pd-section__title">🚙 Stationed Patrol Units
+            <span class="pd-count-badge" id="pd-patrol-badge">0</span>
+          </h2>
+          <div id="pd-patrols-list" class="pd-patrol-roster">
+            <!-- Injected by JS -->
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column: Park Map -->
+      <div class="pd-right" id="pd-right">
+        <div class="pd-map-wrapper">
+          <div class="pd-map-label">PARK OPERATIONAL MAP</div>
+          <div id="park-detail-map" class="pd-map" aria-label="Park detail map"></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /#view-park-detail -->
+
+
+  <!-- ═══════════════════════════════════════════
+       MODAL: Register New Collar
+  ════════════════════════════════════════════ -->
+  <div class="modal-backdrop" id="register-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal" id="modal-box">
+      <div class="modal__header">
+        <h2 class="modal__title" id="modal-title">📋 Field Collar Deployment</h2>
+        <button type="button" class="modal__close" id="btn-close-modal" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="form-register" class="modal__form">
+        <div class="form-group">
+          <label class="form-label" for="inp-name">Animal Name</label>
+          <input type="text" id="inp-name" class="form-input" placeholder="e.g. Satao Pride Male" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inp-species">Species</label>
+          <select id="inp-species" class="form-select" required>
+            <option value="African Elephant">African Elephant (Loxodonta africana)</option>
+            <option value="Lion">Lion (Panthera leo)</option>
+            <option value="Eastern Black Rhino">Eastern Black Rhino (Diceros bicornis)</option>
+            <option value="Cheetah">Cheetah (Acinonyx jubatus)</option>
+            <option value="Maasai Giraffe">Maasai Giraffe (Giraffa camelopardalis)</option>
+            <option value="Plains Zebra">Plains Zebra (Equus quagga)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inp-collar">Collar Tag ID</label>
+          <input type="text" id="inp-collar" class="form-input" placeholder="e.g. KWS-TSV-ELE25" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inp-park">Operational Sector</label>
+          <select id="inp-park" class="form-select" required>
+            <option value="Amboseli National Park">Amboseli National Park</option>
+            <option value="Tsavo East National Park">Tsavo East National Park</option>
+            <option value="Tsavo West National Park">Tsavo West National Park</option>
+            <option value="Maasai Mara National Reserve">Maasai Mara National Reserve</option>
+            <option value="Nairobi National Park">Nairobi National Park</option>
+            <option value="Ol Pejeta Conservancy">Ol Pejeta Conservancy</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inp-sex">Sex</label>
+          <select id="inp-sex" class="form-select">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" id="btn-cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="btn-submit-animal">Register to Database</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
