@@ -46,14 +46,14 @@ The simulation engine replaces random drift with ecologically accurate movement 
 - **Polygon containment enforcement:** Every proposed movement step is validated against an accurate park polygon. Animals that approach a boundary are steered back toward the nearest waypoint inside the sanctuary — they **never** escape into the city or surrounding areas.
 - **Nairobi NP northern fence hard limit:** A dedicated latitude guard (`< -1.3430°`) and heading-repulsion algorithm actively pushes animals southward away from the electric fence line and into the Mbagathi River basin and Athi plains.
 - **Species-specific behavior:**
-  - 🦁 **Lions** — rest 15% of the time (`💤 Resting in Savannah Shade`), patrol at ~4.2 km/h.
-  - 🐘 **Elephants** — family corridor foraging at ~3.2 km/h.
-  - 🦏 **Rhinos** — slow deliberate browser at ~2.4 km/h.
-  - 🐆 **Cheetahs** — fastest animal; open plains scanning at ~7.5 km/h.
-  - 🦒 **Zebras/Wildebeest/Buffalo** — herd grazing at ~3 km/h.
+  - **Lions**— rest 15% of the time (`Resting`), patrol at ~4.2 km/h.
+  - **Elephants** — family corridor foraging at ~3.2 km/h.
+  - **Rhinos** — slow deliberate browser at ~2.4 km/h.
+  - **Cheetahs** — fastest animal; open plains scanning at ~7.5 km/h.
+  - **Zebras/Wildebeest/Buffalo** — herd grazing at ~3 km/h.
 - **Heading momentum (smooth steering):** Animals turn gradually (25% angular correction per tick) with gentle natural wander noise — no teleporting or 90° snaps.
 - **Simulation controls:** Play/Pause button and 1×/2×/4× speed multiplier exposed in the XAML toolbar.
-- **Live fence proximity display:** Nairobi NP animals report exact distance to the northern electric fence (`⚡ Near Northern Fence (230m from fence)` or `🛡️ Safe in Sanctuary (2.1 km from City fence)`).
+- **Live fence proximity display:** Nairobi NP animals report exact distance to the northern electric fence (`Near Northern Fence (230m from fence)` or `Safe in Sanctuary (2.1 km from City fence)`).
 
 ### 3. 🛡️ Conservation Status & IUCN Red List Panel
 - Species breakdown cards displaying the official IUCN conservation status:
