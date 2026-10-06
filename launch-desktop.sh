@@ -13,7 +13,7 @@ CSHARP_DIR="$SCRIPT_DIR/desktop-csharp/KwsDesktop"
 
 echo ""
 echo "  ╔══════════════════════════════════════════════════╗"
-echo "  ║  🦁  KWS WildGuard Tracker — Operations Command  ║"
+echo "  ║   KWS WildGuard Tracker — Operations Command  ║"
 echo "  ║      Java Spring Boot  +  C# Avalonia UI         ║"
 echo "  ╚══════════════════════════════════════════════════╝"
 echo ""
