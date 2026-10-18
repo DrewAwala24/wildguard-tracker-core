@@ -22,29 +22,125 @@ public class AnimalService {
     private final TelemetryRepository telemetryRepository;
     private final GeofenceRepository geofenceRepository;
     private final TelemetrySimulationService simulationService;
+    private final AuditService auditService;
 
     public List<AnimalDto> getAllAnimals() {
         return animalRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    public List<Animal> getAllAnimalEntities() {
+        return animalRepository.findAll();
+    }
+
+    public Optional<Animal> getAnimalById(Long id) {
+        return animalRepository.findById(id);
+    }
+
+    public Optional<Animal> getAnimalByCollarId(String collarId) {
+        return animalRepository.findByCollarId(collarId);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
     public AnimalDto registerAnimal(AnimalDto dto) {
+        return registerAnimal(dto, "COMMANDER");
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public AnimalDto registerAnimal(AnimalDto dto, String username) {
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new IllegalArgumentException("Animal name is required.");
+        }
+        if (dto.getCollarId() == null || dto.getCollarId().isBlank()) {
+            throw new IllegalArgumentException("Collar ID is required.");
+        }
+        if (animalRepository.findByCollarId(dto.getCollarId()).isPresent()) {
+            throw new IllegalArgumentException("Collar ID already registered: " + dto.getCollarId());
+        }
+
         Animal animal = new Animal();
-        animal.setName(dto.getName());
-        animal.setSpecies(dto.getSpecies());
-        animal.setCollarId(dto.getCollarId());
+        animal.setName(dto.getName().trim());
+        animal.setSpecies(dto.getSpecies() != null ? dto.getSpecies().trim() : "African Bush Elephant");
+        animal.setCollarId(dto.getCollarId().trim().toUpperCase());
+        animal.setParkName(dto.getParkName() != null ? dto.getParkName().trim() : "Amboseli NP");
+        animal.setSex(dto.getSex() != null ? dto.getSex().trim() : "Female");
+        animal.setIucnStatus(resolveIucnStatus(animal.getSpecies()));
+        animal.setActive(true);
+        animal.setRegisteredAt(java.time.LocalDateTime.now());
+
         Animal saved = animalRepository.save(animal);
+        auditService.logAction(username, "ANIMAL_REGISTERED", "ANIMAL", saved.getCollarId(),
+                "Registered new animal " + saved.getName() + " (" + saved.getSpecies() + ") in " + saved.getParkName());
+
         return toDto(saved);
     }
 
-    private AnimalDto toDto(Animal animal) {
+    @org.springframework.transaction.annotation.Transactional
+    public AnimalDto updateAnimal(Long id, AnimalDto dto, String username) {
+        Animal animal = animalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Animal not found with ID: " + id));
+
+        animal.setName(dto.getName());
+        if (dto.getSpecies() != null) {
+            animal.setSpecies(dto.getSpecies());
+            animal.setIucnStatus(resolveIucnStatus(dto.getSpecies()));
+        }
+        if (dto.getParkName() != null) {
+            animal.setParkName(dto.getParkName());
+        }
+        if (dto.getSex() != null) {
+            animal.setSex(dto.getSex());
+        }
+
+        Animal updated = animalRepository.save(animal);
+        auditService.logAction(username, "ANIMAL_UPDATED", "ANIMAL", updated.getCollarId(),
+                "Updated details for animal " + updated.getName());
+
+        return toDto(updated);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void retireCollar(String collarId, String username) {
+        Animal animal = animalRepository.findByCollarId(collarId)
+                .orElseThrow(() -> new IllegalArgumentException("Animal with collar " + collarId + " not found."));
+
+        animal.setActive(false);
+        animalRepository.save(animal);
+
+        auditService.logAction(username, "COLLAR_RETIRED", "ANIMAL", collarId,
+                "Retired collar for animal " + animal.getName() + ". Historical telemetry preserved.");
+    }
+
+    public AnimalDto toDto(Animal animal) {
         AnimalDto dto = new AnimalDto();
         dto.setId(animal.getId());
         dto.setName(animal.getName());
         dto.setSpecies(animal.getSpecies());
         dto.setCollarId(animal.getCollarId());
-        dto.setParkName(determineParkName(animal.getCollarId()));
-        dto.setSex(determineSex(animal.getName()));
-        dto.setCollarBattery((int) Math.round(simulationService.getBattery(animal.getId())));
+
+        String park = simulationService.normalizeParkName(animal.getParkName(), animal.getCollarId());
+        dto.setParkName(park);
+        dto.setSex(animal.getSex() != null ? animal.getSex() : determineSex(animal.getName()));
+
+        String iucn = animal.getIucnStatus() != null ? animal.getIucnStatus() : resolveIucnStatus(animal.getSpecies());
+        dto.setIucnStatus(iucn);
+        dto.setIucnLabel(resolveIucnLabel(iucn));
+        dto.setSpeciesIcon(resolveSpeciesIcon(animal.getSpecies()));
+
+        String imgName = resolveImageFileName(animal.getName(), animal.getSpecies());
+        dto.setImageFileName(imgName);
+        dto.setImageUrl("/images/" + imgName);
+
+        int battery = (int) Math.round(simulationService.getBattery(animal.getId()));
+        dto.setCollarBattery(battery);
+
+        dto.setSpeedKmh(simulationService.getSpeed(animal.getCollarId()));
+        dto.setHeadingCompass(simulationService.getHeadingCompass(animal.getCollarId()));
+        dto.setBehaviorState(simulationService.getBehavior(animal.getCollarId()));
+        dto.setFenceDistance(simulationService.getFenceDistance(animal.getCollarId()));
+        dto.setPredictedCorridor(simulationService.getCorridor(animal.getCollarId()));
+        dto.setSolarVoltageDisplay(String.format("☀️ %.1fV (Solar Float)", 13.8 + (battery * 0.005)));
+        dto.setCollarTempDisplay("🌡️ 27°C (Nominal)");
+        dto.setSignalStrength("🛰️ -82 dBm (Iridium SAT)");
 
         Optional<TelemetryLocation> latestLoc = telemetryRepository.findTop1ByAnimal_IdOrderByTimestampDesc(animal.getId());
         if (latestLoc.isPresent() && latestLoc.get().getLocation() != null) {
@@ -55,20 +151,22 @@ public class AnimalService {
             dto.setLastSeen(latestLoc.get().getTimestamp());
 
             // PostGIS Geofence Breach Check
-            List<GeofenceZone> zones = geofenceRepository.findZonesContainingPoint(lng, lat);
-            boolean inBuffer = zones.stream().anyMatch(z -> "COMMUNITY_BUFFER".equalsIgnoreCase(z.getZoneType()));
+            boolean inBuffer = false;
+            try {
+                List<GeofenceZone> zones = geofenceRepository.findZonesContainingPoint(lng, lat);
+                inBuffer = zones.stream().anyMatch(z -> "COMMUNITY_BUFFER".equalsIgnoreCase(z.getZoneType()));
+            } catch (Exception ignored) {}
             dto.setIsBreaching(inBuffer);
 
             if (inBuffer) {
                 dto.setStatus("Alert");
-            } else if (dto.getCollarBattery() != null && dto.getCollarBattery() < 20) {
+            } else if (battery < 20) {
                 dto.setStatus("Low Battery");
             } else {
                 dto.setStatus("Active");
             }
         } else {
-            // Default baseline if no telemetry recorded yet
-            double[] baseline = getFallbackCoord(animal.getCollarId());
+            double[] baseline = simulationService.getBaselineCoordinate(park, animal.getCollarId());
             dto.setLatitude(baseline[0]);
             dto.setLongitude(baseline[1]);
             dto.setIsBreaching(false);
@@ -78,37 +176,89 @@ public class AnimalService {
         return dto;
     }
 
-    private String determineParkName(String collarId) {
-        if (collarId == null) return "Tsavo East NP";
-        String id = collarId.toUpperCase();
-        if (id.contains("AMB")) return "Amboseli NP";
-        if (id.contains("TSV")) return "Tsavo East NP";
-        if (id.contains("MAR")) return "Maasai Mara";
-        if (id.contains("NBI")) return "Nairobi NP";
-        if (id.contains("OLP")) return "Ol Pejeta";
-        return "Amboseli NP";
+    public static String resolveSpeciesIcon(String species) {
+        if (species == null) return "🐾";
+        String s = species.toLowerCase();
+        if (s.contains("elephant")) return "🐘";
+        if (s.contains("rhino")) return "🦏";
+        if (s.contains("bongo")) return "🦌";
+        if (s.contains("sitatunga")) return "🦌";
+        if (s.contains("zebra")) return "🦓";
+        if (s.contains("lion")) return "🦁";
+        if (s.contains("cheetah")) return "🐆";
+        if (s.contains("eagle")) return "🦅";
+        if (s.contains("secretary")) return "🦅";
+        if (s.contains("giraffe")) return "🦒";
+        if (s.contains("wild dog") || s.contains("lycaon")) return "🐺";
+        if (s.contains("hyena")) return "🐺";
+        if (s.contains("buffalo")) return "🦬";
+        if (s.contains("hippo")) return "🦛";
+        return "🐾";
+    }
+
+    public static String resolveIucnStatus(String species) {
+        if (species == null) return "LC";
+        String s = species.toLowerCase();
+        if (s.contains("eastern black") || s.contains("black rhino") || s.contains("northern white") || s.contains("bongo")) {
+            return "CR"; // Critically Endangered
+        }
+        if (s.contains("grevy") || s.contains("wild dog") || s.contains("martial eagle") || s.contains("secretary bird")) {
+            return "EN"; // Endangered
+        }
+        if (s.contains("elephant") || s.contains("lion") || s.contains("cheetah") || s.contains("giraffe")) {
+            return "VU"; // Vulnerable
+        }
+        if (s.contains("white rhino") || s.contains("leopard")) {
+            return "NT"; // Near Threatened
+        }
+        return "LC"; // Least Concern
+    }
+
+    public static String resolveIucnLabel(String iucn) {
+        if (iucn == null) return "Least Concern";
+        return switch (iucn) {
+            case "CR" -> "Critically Endangered";
+            case "EN" -> "Endangered";
+            case "VU" -> "Vulnerable";
+            case "NT" -> "Near Threatened";
+            default -> "Least Concern";
+        };
     }
 
     private String determineSex(String name) {
         if (name == null) return "Unknown";
         String lower = name.toLowerCase();
-        if (lower.contains("bull") || lower.contains("male") || lower.contains("simba") || lower.contains("kipsing") || lower.contains("baraka")) {
+        if (lower.contains("bull") || lower.contains("male") || lower.contains("simba") || lower.contains("kipsing") || lower.contains("baraka") || lower.contains("tusker") || lower.contains("stallion") || lower.contains("buck") || lower.contains("hunter")) {
             return "Male";
         }
-        if (lower.contains("matriarch") || lower.contains("female") || lower.contains("pride") || lower.contains("talek") || lower.contains("zuri")) {
+        if (lower.contains("matriarch") || lower.contains("female") || lower.contains("pride") || lower.contains("talek") || lower.contains("zuri") || lower.contains("mare") || lower.contains("doe") || lower.contains("najin") || lower.contains("fatu")) {
             return "Female";
         }
-        return "Unknown";
+        return "Female";
     }
 
-    private double[] getFallbackCoord(String collarId) {
-        if (collarId == null) return new double[]{-2.6531, 37.2625};
-        String id = collarId.toUpperCase();
-        if (id.contains("AMB")) return new double[]{-2.6531, 37.2625};
-        if (id.contains("TSV")) return new double[]{-2.8124, 38.6210};
-        if (id.contains("MAR")) return new double[]{-1.4850, 35.1280};
-        if (id.contains("NBI")) return new double[]{-1.3780, 36.8420};
-        if (id.contains("OLP")) return new double[]{0.0420, 36.9450};
-        return new double[]{-2.6531, 37.2625};
+    public static String resolveImageFileName(String name, String species) {
+        if (name != null) {
+            String lower = name.toLowerCase();
+            if (lower.contains("mutula")) return "mutula_bull.jpg";
+            if (lower.contains("kibo")) return "kibo.jpg";
+            if (lower.contains("satao")) return "satao.jpg";
+            if (lower.contains("kipsing")) return "kipsing.jpg";
+            if (lower.contains("mukurwe")) return "mukurwe.jpg";
+            if (lower.contains("simba")) return "simba.jpg";
+            if (lower.contains("talek")) return "talek.jpg";
+            if (lower.contains("zuri")) return "zuri.jpg";
+            if (lower.contains("baraka")) return "baraka_rh.jpg";
+        }
+        if (species != null) {
+            String s = species.toLowerCase();
+            if (s.contains("rhino")) return "baraka.jpg";
+            if (s.contains("elephant")) return "mutula_bull.jpg";
+            if (s.contains("lion")) return "simba.jpg";
+            if (s.contains("cheetah")) return "talek.jpg";
+            if (s.contains("zebra")) return "zuri.jpg";
+            if (s.contains("giraffe")) return "kibo.jpg";
+        }
+        return "kws_logo.jpg";
     }
 }

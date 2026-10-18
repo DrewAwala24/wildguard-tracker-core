@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=KWS WildGuard Tracker
+GenericName=Wildlife Operations Command
+Comment=Kenya Wildlife Service Geospatial Telemetry & Operations Command
+Exec=/home/dr3w/Desktop/KWS/launch-desktop.sh
+Icon=/home/dr3w/Desktop/KWS/backend/src/main/resources/static/images/kws_logo.jpg
+Path=/home/dr3w/Desktop/KWS
+Terminal=true
+Categories=Science;Geography;Utility;
+StartupNotify=true

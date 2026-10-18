@@ -1,0 +1,127 @@
+/* =========================================================================
+ * WildGuard Tracker — Tactical Operations Command Dark Theme
+ * Palette: Obsidian (#0B0F17), Slate (#111827), KWS Olive (#556B2F),
+ * Savannah Gold (#FFD700), Sanctuary Emerald (#10B981), Alert Crimson (#EF4444)
+ * ========================================================================= */
+
+.root {
+    -fx-base: #0B0F17;
+    -fx-background-color: #0B0F17;
+    -fx-font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -fx-text-fill: #F8FAFC;
+}
+
+/* ScrollBars */
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.scroll-bar:vertical .thumb, .scroll-bar:horizontal .thumb {
+    -fx-background-color: #1E293B;
+    -fx-background-radius: 4px;
+}
+.scroll-bar:vertical .thumb:hover, .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #38BDF8;
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: #1E293B;
+    -fx-text-fill: #F8FAFC;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 12px;
+    -fx-cursor: hand;
+}
+.button:hover {
+    -fx-background-color: #334155;
+    -fx-border-color: #38BDF8;
+    -fx-border-radius: 4px;
+}
+.button-primary {
+    -fx-background-color: #10B981;
+    -fx-text-fill: #FFFFFF;
+}
+.button-primary:hover {
+    -fx-background-color: #059669;
+}
+.button-danger {
+    -fx-background-color: #DC2626;
+    -fx-text-fill: #FFFFFF;
+}
+.button-danger:hover {
+    -fx-background-color: #B91C1C;
+}
+
+/* TableView */
+.table-view {
+    -fx-background-color: #111827;
+    -fx-border-color: #1E293B;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+.table-view .column-header-background {
+    -fx-background-color: #161F2E;
+}
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #1E293B;
+    -fx-border-width: 0 1px 1px 0;
+}
+.table-view .column-header .label {
+    -fx-text-fill: #94A3B8;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+.table-row-cell {
+    -fx-background-color: #111827;
+    -fx-text-fill: #F8FAFC;
+    -fx-border-color: #1E293B;
+    -fx-border-width: 0 0 1px 0;
+}
+.table-row-cell:odd {
+    -fx-background-color: #141E2E;
+}
+.table-row-cell:hover {
+    -fx-background-color: #1E293B;
+}
+.table-row-cell:selected {
+    -fx-background-color: #1E3A8A;
+}
+
+/* TextFields & ComboBox */
+.text-field, .password-field, .text-area {
+    -fx-background-color: #161F2E;
+    -fx-text-fill: #F8FAFC;
+    -fx-border-color: #1E293B;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 10px;
+}
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #38BDF8;
+}
+.combo-box {
+    -fx-background-color: #161F2E;
+    -fx-border-color: #1E293B;
+    -fx-border-radius: 4px;
+}
+.combo-box .cell {
+    -fx-text-fill: #F8FAFC;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: #161F2E;
+    -fx-border-color: #38BDF8;
+}
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #1E293B;
+}
+
+/* ProgressBar */
+.progress-bar > .bar {
+    -fx-background-radius: 3px;
+    -fx-padding: 3px;
+}
+.progress-bar > .track {
+    -fx-background-color: #1E293B;
+    -fx-background-radius: 3px;
+}

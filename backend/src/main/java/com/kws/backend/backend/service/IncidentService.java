@@ -6,11 +6,11 @@ import com.kws.backend.backend.repository.IncidentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,45 +19,112 @@ import java.util.stream.Collectors;
 public class IncidentService {
 
     private final IncidentRepository incidentRepository;
+    private final AuditService auditService;
+
+    // Cooldown map: key = collarId + ":" + zoneName, value = last reported timestamp
+    private final Map<String, LocalDateTime> incidentCooldowns = new ConcurrentHashMap<>();
+    private static final int COOLDOWN_MINUTES = 10;
 
     public List<IncidentDto> getActiveIncidents() {
-        return incidentRepository.findByStatusOrderByTimestampDesc("ACTIVE").stream()
+        return incidentRepository.findOpenIncidents().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public List<IncidentLog> getOpenIncidentEntities() {
+        return incidentRepository.findOpenIncidents();
     }
 
     public List<IncidentDto> getAllIncidents() {
-        return incidentRepository.findAll().stream()
+        return incidentRepository.findTop25ByOrderByTimestampDesc().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
+    public List<IncidentLog> getAllIncidentEntities() {
+        return incidentRepository.findAll();
+    }
+
+    @Transactional
     public IncidentDto recordIncident(String animalName, String collarId, String zoneName, String severity, String message) {
+        return recordIncident(animalName, collarId, zoneName, severity, message, null, null, null);
+    }
+
+    @Transactional
+    public synchronized IncidentDto recordIncident(String animalName, String collarId, String zoneName, String severity, String message, String parkName, Double lat, Double lng) {
+        String key = (collarId != null ? collarId : "ANIMAL") + ":" + (zoneName != null ? zoneName : "ZONE");
+        LocalDateTime lastReported = incidentCooldowns.get(key);
+
+        if (lastReported != null && lastReported.plusMinutes(COOLDOWN_MINUTES).isAfter(LocalDateTime.now())) {
+            log.debug("Suppressing duplicate incident for {} in {} (cooling down until {})",
+                    collarId, zoneName, lastReported.plusMinutes(COOLDOWN_MINUTES));
+            return null;
+        }
+
+        incidentCooldowns.put(key, LocalDateTime.now());
+
+        String incidentCode = "HWC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         IncidentLog incident = new IncidentLog();
+        incident.setIncidentCode(incidentCode);
         incident.setAnimalName(animalName);
         incident.setCollarId(collarId);
         incident.setZoneName(zoneName);
-        incident.setSeverity(severity);
+        incident.setParkName(parkName);
+        incident.setSeverity(severity != null ? severity : "WARNING");
         incident.setMessage(message);
         incident.setStatus("ACTIVE");
+        incident.setLatitude(lat);
+        incident.setLongitude(lng);
         incident.setTimestamp(LocalDateTime.now());
-        return toDto(incidentRepository.save(incident));
+
+        IncidentLog saved = incidentRepository.save(incident);
+        auditService.logAction("SYSTEM", "INCIDENT_CREATED", "INCIDENT", incidentCode,
+                "Breach detected for " + animalName + " (" + collarId + ") in " + zoneName + " - " + message);
+
+        return toDto(saved);
     }
 
-    public IncidentDto resolveIncident(Long id, String notes) {
+    @Transactional
+    public IncidentDto acknowledgeIncident(Long id, String username) {
         IncidentLog incident = incidentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Incident not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Incident not found: " + id));
+
+        incident.setStatus("ACKNOWLEDGED");
+        incident.setAcknowledgedAt(LocalDateTime.now());
+        IncidentLog saved = incidentRepository.save(incident);
+
+        auditService.logAction(username != null ? username : "COMMANDER", "INCIDENT_ACKNOWLEDGED", "INCIDENT",
+                incident.getIncidentCode() != null ? incident.getIncidentCode() : String.valueOf(id),
+                "Incident acknowledged by " + (username != null ? username : "duty commander"));
+
+        return toDto(saved);
+    }
+
+    @Transactional
+    public IncidentDto resolveIncident(Long id, String notes) {
+        return resolveIncident(id, notes, "COMMANDER");
+    }
+
+    @Transactional
+    public IncidentDto resolveIncident(Long id, String notes, String username) {
+        IncidentLog incident = incidentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Incident not found: " + id));
 
         incident.setStatus("RESOLVED");
-        incident.setResolutionNotes(notes != null && !notes.isBlank() 
-                ? notes 
-                : "Incident successfully resolved by KWS field team; animals guided back to protected zone.");
-        log.info("Incident #{} marked RESOLVED with notes: {}", id, incident.getResolutionNotes());
-        return toDto(incidentRepository.save(incident));
+        incident.setResolvedAt(LocalDateTime.now());
+        incident.setResolutionNotes(notes != null && !notes.isBlank()
+                ? notes
+                : "Incident successfully resolved; wildlife safely contained within sanctuary perimeter.");
+
+        IncidentLog saved = incidentRepository.save(incident);
+        auditService.logAction(username != null ? username : "COMMANDER", "INCIDENT_RESOLVED", "INCIDENT",
+                incident.getIncidentCode() != null ? incident.getIncidentCode() : String.valueOf(id),
+                "Resolved: " + incident.getResolutionNotes());
+
+        return toDto(saved);
     }
 
     public Map<String, Object> broadcastCommunitySms(String corridor, String message) {
-        // Simulates automated KWS emergency SMS dispatch to pastoralists & farmers along buffer zones
         int recipientCount = corridor != null && corridor.contains("Kimana") ? 54 : 38;
         String corridorName = corridor != null ? corridor : "Community Dispersal Area";
 
@@ -73,7 +140,7 @@ public class IncidentService {
         return response;
     }
 
-    private IncidentDto toDto(IncidentLog log) {
+    public IncidentDto toDto(IncidentLog log) {
         IncidentDto dto = new IncidentDto();
         dto.setId(log.getId());
         dto.setAnimalName(log.getAnimalName());

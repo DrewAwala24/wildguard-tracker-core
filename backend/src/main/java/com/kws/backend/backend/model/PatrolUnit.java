@@ -36,4 +36,23 @@ public class PatrolUnit {
 
     @Column(nullable = false)
     private String sector; // e.g. Amboseli NP, Tsavo East NP
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(name = "current_location", columnDefinition = "geometry(Point,4326)")
+    private org.locationtech.jts.geom.Point currentLocation;
+
+    @Column(name = "last_status_update")
+    private java.time.LocalDateTime lastStatusUpdate = java.time.LocalDateTime.now();
+
+    public PatrolUnit(Long id, String name, String callSign, String unitType, Double latitude, Double longitude, String status, String sector) {
+        this.id = id;
+        this.name = name;
+        this.callSign = callSign;
+        this.unitType = unitType;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.status = status;
+        this.sector = sector;
+        this.lastStatusUpdate = java.time.LocalDateTime.now();
+    }
 }

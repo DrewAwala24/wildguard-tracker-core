@@ -25,11 +25,22 @@ public class TelemetryService {
     private final TelemetryRepository telemetryRepository;
     private final AnimalRepository animalRepository;
     private final GeofenceRepository geofenceRepository;
+    private final IncidentService incidentService;
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
+    @org.springframework.transaction.annotation.Transactional
     public void processTelemetry(TelemetryRequestDto dto) {
+        if (dto.getCollarId() == null || dto.getCollarId().isBlank()) {
+            throw new IllegalArgumentException("Malformed telemetry: collarId is required.");
+        }
+
+        // Validate coordinate bounds (WGS 84 Kenya region bounds)
+        if (dto.getLatitude() < -6.0 || dto.getLatitude() > 6.0 || dto.getLongitude() < 33.0 || dto.getLongitude() > 43.0) {
+            throw new IllegalArgumentException(String.format("Invalid Kenya GPS coordinates: [%.4f, %.4f]", dto.getLatitude(), dto.getLongitude()));
+        }
+
         Animal animal = animalRepository.findByCollarId(dto.getCollarId())
-                .orElseThrow(() -> new RuntimeException("Animal collar not found: " + dto.getCollarId()));
+                .orElseThrow(() -> new IllegalArgumentException("Unregistered animal collar tag: " + dto.getCollarId()));
 
         Point point = geometryFactory.createPoint(new Coordinate(dto.getLongitude(), dto.getLatitude()));
         point.setSRID(4326);
@@ -37,14 +48,31 @@ public class TelemetryService {
         TelemetryLocation telemetry = new TelemetryLocation();
         telemetry.setAnimal(animal);
         telemetry.setLocation(point);
+        telemetry.setLatitude(dto.getLatitude());
+        telemetry.setLongitude(dto.getLongitude());
+        telemetry.setDataSource("LIVE");
         telemetry.setTimestamp(dto.getTimestamp() != null ? dto.getTimestamp() : java.time.LocalDateTime.now());
+        telemetry.setCreatedAt(java.time.LocalDateTime.now());
 
         telemetryRepository.save(telemetry);
 
-        // Check spatial boundaries for geofence breaches
+        // Check spatial boundaries for geofence breaches using PostGIS ST_Intersects
         var breaches = geofenceRepository.findZonesContainingPoint(dto.getLongitude(), dto.getLatitude());
-        if (!breaches.isEmpty()) {
-            // Trigger early-warning alert notifications here
+        for (var zone : breaches) {
+            if ("COMMUNITY_BUFFER".equalsIgnoreCase(zone.getZoneType()) || "HIGH_CONFLICT".equalsIgnoreCase(zone.getZoneType())) {
+                incidentService.recordIncident(
+                        animal.getName(),
+                        animal.getCollarId(),
+                        zone.getZoneName(),
+                        "CRITICAL",
+                        String.format("LIVE Telemetry Fix: %s (%s) breached %s at [%.4f, %.4f]",
+                                animal.getName(), animal.getCollarId(), zone.getZoneName(), dto.getLatitude(), dto.getLongitude()),
+                        animal.getParkName(),
+                        dto.getLatitude(),
+                        dto.getLongitude()
+                );
+                break;
+            }
         }
     }
 

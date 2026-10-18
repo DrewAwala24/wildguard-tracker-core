@@ -3,6 +3,24 @@
    Senior-grade CSS: design tokens → components → layouts → views
 ──────────────────────────────────────────────────────────────── */
 
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-VariableFont_wght.ttf') format('truetype-variations'),
+       url('/fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Italic-VariableFont_wght.ttf') format('truetype-variations'),
+       url('/fonts/Montserrat-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ── 1. Design Tokens ──────────────────────────────────────────── */
 :root {
   /* Background hierarchy */
@@ -54,9 +72,10 @@
   --sp-4: 16px; --sp-5: 20px;  --sp-6: 24px;
   --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
 
+
   /* Type */
-  --font-heading: 'Outfit', system-ui, sans-serif;
-  --font-body:    'Inter',  system-ui, sans-serif;
+  --font-heading: 'Montserrat', 'Outfit', system-ui, sans-serif;
+  --font-body:    'Montserrat', 'Inter', system-ui, sans-serif;
 
   /* Radii */
   --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 9999px;
@@ -789,6 +808,7 @@ html, body {
   outline: none;
   transition: border-color var(--t-fast);
   -webkit-appearance: none;
+  appearance: none;
 }
 .form-input:focus,
 .form-select:focus { border-color: var(--gold); }
@@ -915,8 +935,6 @@ html, body {
   position: relative;
   overflow: hidden;
 }
-
-.pd-section { }
 
 .pd-section__title {
   font-family: var(--font-heading);

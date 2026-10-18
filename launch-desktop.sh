@@ -1,45 +1,59 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════
-#  KWS WildGuard Tracker — Desktop Launcher
-#  Language Stack: Java 17+ (Spring Boot) + C# .NET 8 (Avalonia)
-#  Platform: Linux (WebKit2GTK) / Windows (WebView2) / macOS
+#  KWS WildGuard Tracker — Linux Desktop Operations Launcher
+#  Stack: Java 17+ (Spring Boot + PostGIS + Native Operations GUI)
+#  Platform: Linux Desktop (Ubuntu / Debian / Fedora / X11 / Wayland)
 # ═══════════════════════════════════════════════════════════════
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKEND_JAR="$SCRIPT_DIR/backend/build/libs/backend-0.0.1-SNAPSHOT.jar"
-CSHARP_DIR="$SCRIPT_DIR/desktop-csharp/KwsDesktop"
+BACKEND_DIR="$SCRIPT_DIR/backend"
+BACKEND_JAR="$BACKEND_DIR/build/libs/backend-0.0.1-SNAPSHOT.jar"
 
-echo ""
-echo "  ╔══════════════════════════════════════════════════╗"
-echo "  ║   KWS WildGuard Tracker — Operations Command  ║"
-echo "  ║      Java Spring Boot  +  C# Avalonia UI         ║"
-echo "  ╚══════════════════════════════════════════════════╝"
+
+echo "  ╔══════════════════════════════════════════════════════════════╗"
+echo "  ║  🦁  KENYA WILDLIFE SERVICE — WildGuard Operations Command  ║"
+echo "  ║         Native Desktop Client & Spatial Telemetry Engine     ║"
+echo "  ║                   Powered by Java 17+ & PostGIS              ║"
+echo "  ╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
-# ── Step 1: Build backend if JAR is missing ──────────────────────
-if [ ! -f "$BACKEND_JAR" ]; then
-  echo "  [BUILD] Spring Boot JAR not found — building backend..."
-  cd "$SCRIPT_DIR/backend"
-  ./gradlew bootJar --quiet
-  cd "$SCRIPT_DIR"
-  echo "  [BUILD] ✅ Backend built successfully."
+# ── Step 1: Verify Java runtime ───────────────────────────────────
+if ! command -v java &>/dev/null; then
+  echo "  [ERROR] Java is not installed or not in PATH."
+  echo "          Please install Java 17+ (e.g. sudo apt install openjdk-17-jre)."
+  exit 1
 fi
 
-# ── Step 2: Build / restore the C# Avalonia desktop app ──────────
-echo "  [BUILD] Restoring C# Avalonia UI packages..."
-cd "$CSHARP_DIR"
-dotnet restore -v q 2>&1 | tail -3
+JAVA_VER=$(java -version 2>&1 | head -1)
+echo "  [RUNTIME] Using $JAVA_VER"
 
-echo "  [BUILD] Building KwsDesktop (C# / Avalonia)..."
-dotnet build --configuration Release --no-restore -v q 2>&1 | tail -5
+# ── Step 2: Build backend JAR if missing or sources updated ───────
+if [ ! -f "$BACKEND_JAR" ]; then
+  echo "  [BUILD] Backend JAR not found — building with Gradle..."
+  cd "$BACKEND_DIR"
+  ./gradlew bootJar --quiet
+  cd "$SCRIPT_DIR"
+  echo "  [BUILD] ✅ WildGuard Core Engine built successfully."
+else
+  echo "  [BUILD] ✅ Found existing executable JAR ($BACKEND_JAR)."
+fi
+
+# ── Step 3: Check PostgreSQL connection (advisory) ────────────────
+if command -v nc &>/dev/null; then
+  if ! nc -z -w2 127.0.0.1 5432 2>/dev/null; then
+    echo "  [NOTICE] PostgreSQL port 5432 is not responding."
+    echo "           Ensure PostgreSQL/PostGIS is running: sudo systemctl start postgresql"
+  fi
+fi
 
 echo ""
-echo "  [LAUNCH] Starting KWS WildGuard desktop application..."
-echo "           The application window will open shortly."
-echo "           Ctrl+C to stop all processes."
+echo "  [LAUNCH] Starting KWS WildGuard Operations Desktop…"
+echo "           • Desktop Operations Window will appear on screen"
+echo "           • Operations Console will auto-open at http://localhost:8080"
+echo "           • Press Ctrl+C in this terminal or click Exit in the app to stop."
 echo ""
 
-# ── Step 3: Launch the C# desktop app (it starts the Java backend) ─
-dotnet run --configuration Release --no-build
+# ── Step 4: Execute Native Java Desktop App ────────────────────────
+exec java -jar "$BACKEND_JAR"

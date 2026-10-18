@@ -1,7 +1,9 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.1.1'
+    id 'application'
+    id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 group = 'com.kws.backend'
@@ -14,26 +16,49 @@ java {
     }
 }
 
+javafx {
+    version = '17.0.12'
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics', 'javafx.swing']
+}
+
+application {
+    mainClass = 'com.kws.backend.backend.BackendApplication'
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    
+    implementation 'org.hibernate.orm:hibernate-spatial'
+    implementation 'org.locationtech.jts:jts-core:1.19.0'
+    implementation 'org.n52.jackson:jackson-datatype-jts:1.2.6'
+
+    def osName = System.getProperty("os.name").toLowerCase()
+    def javafxPlatform = osName.contains("win") ? "win" : (osName.contains("mac") ? "mac" : "linux")
+    implementation "org.openjfx:javafx-base:17.0.12:${javafxPlatform}"
+    implementation "org.openjfx:javafx-graphics:17.0.12:${javafxPlatform}"
+    implementation "org.openjfx:javafx-controls:17.0.12:${javafxPlatform}"
+    implementation "org.openjfx:javafx-fxml:17.0.12:${javafxPlatform}"
+    implementation "org.openjfx:javafx-swing:17.0.12:${javafxPlatform}"
+    
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
-    implementation 'org.hibernate.orm:hibernate-spatial'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.n52.jackson:jackson-datatype-jts:1.2.6'
-    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 }
 
 tasks.named('test') {

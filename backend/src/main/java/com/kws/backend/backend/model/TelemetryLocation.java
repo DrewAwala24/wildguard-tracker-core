@@ -29,13 +29,37 @@ public class TelemetryLocation {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @Transient
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "speed_kmh")
+    private Double speedKmh = 0.0;
+
+    @Column(name = "heading")
+    private Double heading = 0.0;
+
+    @Column(name = "battery_level")
+    private Double batteryLevel = 100.0;
+
+    @Column(name = "activity_state")
+    private String activityState = "ACTIVE";
+
+    @Column(name = "data_source")
+    private String dataSource = "SIMULATED";
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     public Double getLatitude() {
+        if (latitude != null) return latitude;
         return location != null ? location.getY() : null;
     }
 
-    @Transient
     public Double getLongitude() {
+        if (longitude != null) return longitude;
         return location != null ? location.getX() : null;
     }
 

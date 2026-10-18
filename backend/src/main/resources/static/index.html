@@ -6,10 +6,10 @@
   <meta name="description" content="Kenya Wildlife Service WildGuard Operations Command — Real-time spatial wildlife tracking with PostGIS and geofencing.">
   <title>KWS — WildGuard Operations Command</title>
 
-  <!-- Typography -->
+  <!-- Typography: Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -73,19 +73,35 @@
     <!-- Sector & Weather Strip -->
     <div class="strip" id="sector-strip" role="navigation" aria-label="Sector filters">
       <div class="sector-chips" id="sector-chips">
-        <button class="chip chip--active" data-sector="ALL" id="chip-all">All Sectors</button>
+        <button class="chip chip--active" data-sector="ALL" id="chip-all">All Kenya</button>
         <button class="chip" data-sector="Amboseli" id="chip-amboseli">Amboseli NP</button>
-        <button class="chip" data-sector="Tsavo" id="chip-tsavo">Tsavo East</button>
+        <button class="chip" data-sector="Tsavo East" id="chip-tsavo-east">Tsavo East NP</button>
+        <button class="chip" data-sector="Tsavo West" id="chip-tsavo-west">Tsavo West NP</button>
         <button class="chip" data-sector="Mara" id="chip-mara">Maasai Mara</button>
         <button class="chip" data-sector="Nairobi" id="chip-nairobi">Nairobi NP</button>
         <button class="chip" data-sector="Pejeta" id="chip-pejeta">Ol Pejeta</button>
+        <button class="chip" data-sector="Nakuru" id="chip-nakuru">Lake Nakuru</button>
+        <button class="chip" data-sector="Samburu" id="chip-samburu">Samburu</button>
+        <button class="chip" data-sector="Aberdare" id="chip-aberdare">Aberdare</button>
+        <button class="chip" data-sector="Mount Kenya" id="chip-mtkenya">Mount Kenya</button>
+        <button class="chip" data-sector="Lewa" id="chip-lewa">Lewa</button>
+        <button class="chip" data-sector="Saiwa" id="chip-saiwa">Saiwa Swamp</button>
+        <button class="chip" data-sector="Elgon" id="chip-elgon">Mount Elgon</button>
       </div>
       <div class="weather-ticker" id="weather-ticker" aria-hidden="true">
-        <span>☀️ Amboseli: 29°C · Clear</span>
-        <span>⛅ Tsavo East: 31°C · Dry Breeze</span>
-        <span>🌤️ Maasai Mara: 26°C · Savannah Clouds</span>
-        <span>⛅ Nairobi NP: 24°C · Clear</span>
-        <span>🌡️ Ol Pejeta: 22°C · Plateau Wind</span>
+        <span>☀️ Amboseli: 28°C · Clear</span>
+        <span>☀️ Tsavo East: 35°C · Hot &amp; Dry</span>
+        <span>🌤️ Tsavo West: 30°C · Clear Savannah</span>
+        <span>🌧️ Maasai Mara: 22°C · Savannah Showers</span>
+        <span>🌦️ Nairobi NP: 24°C · Warm &amp; Breezy</span>
+        <span>☀️ Ol Pejeta: 27°C · Plateau Sun</span>
+        <span>⛅ Lake Nakuru: 21°C · Rift Valley Mist</span>
+        <span>☀️ Samburu: 33°C · Arid Heat</span>
+        <span>🌧️ Aberdare: 16°C · Highland Mist</span>
+        <span>❄️ Mount Kenya: 9°C · Alpine Cold</span>
+        <span>⛅ Lewa: 25°C · Scattered Cloud</span>
+        <span>🌧️ Saiwa Swamp: 20°C · Wetland Reeds</span>
+        <span>🌦️ Mount Elgon: 15°C · Montane Mist</span>
       </div>
     </div>
 
